@@ -34,7 +34,7 @@ from turbo_nigo.models.ablations import (
     Ablation2_NoDissipativeTurboNIGO,
     Ablation3_DenseGeneratorTurboNIGO,
     Ablation4_NoRefinerTurboNIGO,
-    Ablation5_ScaledTurboNIGO
+    Ablation5_UnscaledTurboNIGO
 )
 from turbo_nigo.core import Trainer
 

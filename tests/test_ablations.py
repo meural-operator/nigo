@@ -5,7 +5,7 @@ from turbo_nigo.models.ablations import (
     Ablation2_NoDissipativeTurboNIGO,
     Ablation3_DenseGeneratorTurboNIGO,
     Ablation4_NoRefinerTurboNIGO,
-    Ablation5_ScaledTurboNIGO
+    Ablation5_UnscaledTurboNIGO
 )
 
 @pytest.fixture
@@ -18,30 +18,30 @@ def mock_inputs():
 def test_no_skew_model(mock_inputs):
     u0, t, cond = mock_inputs
     model = Ablation1_NoSkewTurboNIGO(latent_dim=16, num_bases=4, in_channels=1, width=8, spatial_size=32)
-    out, z_base, kc, rc = model(u0, t, cond)
+    out, *_ = model(u0, t, cond)
     assert out.shape == (2, 2, 1, 32, 32)
     
 def test_no_dissipative_model(mock_inputs):
     u0, t, cond = mock_inputs
     model = Ablation2_NoDissipativeTurboNIGO(latent_dim=16, num_bases=4, in_channels=1, width=8, spatial_size=32)
-    out, z_base, kc, rc = model(u0, t, cond)
+    out, *_ = model(u0, t, cond)
     assert out.shape == (2, 2, 1, 32, 32)
 
 def test_dense_model(mock_inputs):
     u0, t, cond = mock_inputs
     model = Ablation3_DenseGeneratorTurboNIGO(latent_dim=16, num_bases=4, in_channels=1, width=8, spatial_size=32)
-    out, z_base, kc, rc = model(u0, t, cond)
+    out, *_ = model(u0, t, cond)
     assert out.shape == (2, 2, 1, 32, 32)
 
 def test_no_refiner_model(mock_inputs):
     u0, t, cond = mock_inputs
     model = Ablation4_NoRefinerTurboNIGO(latent_dim=16, num_bases=4, in_channels=1, width=8, spatial_size=32)
-    out, z_base, kc, rc = model(u0, t, cond)
+    out, *_ = model(u0, t, cond)
     assert out.shape == (2, 2, 1, 32, 32)
 
-def test_scaled_model(mock_inputs):
+def test_unscaled_model(mock_inputs):
     u0, t, cond = mock_inputs
-    model = Ablation5_ScaledTurboNIGO(latent_dim=16, num_bases=4, in_channels=1, width=8, spatial_size=32)
-    # Ablation5 ALSO returns 4 values strictly, but it computes alpha and beta under the hood.
-    out, z_base, kc, rc = model(u0, t, cond)
+    model = Ablation5_UnscaledTurboNIGO(latent_dim=16, num_bases=4, in_channels=1, width=8, spatial_size=32)
+    # Ablation5 ALSO returns 4 values strictly, but it forces alpha and beta to 1.
+    out, *_ = model(u0, t, cond)
     assert out.shape == (2, 2, 1, 32, 32)

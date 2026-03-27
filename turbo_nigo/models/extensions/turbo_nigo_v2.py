@@ -85,7 +85,7 @@ class GlobalTurboNIGO_V2(nn.Module):
             alpha, beta, k_coeffs, r_coeffs = self.cond_net(z0, u0, cond)
 
         # Generate (Lyapunov-stable dynamics)
-        z_base = self.generator(z0, time_steps, alpha, beta, k_coeffs, r_coeffs)
+        z_base = self.generator(z0, time_steps, k_coeffs, r_coeffs, alpha, beta)
 
         # Refine (identity-initialized correction)
         z_refined = self.refiner(z_base)
@@ -93,4 +93,4 @@ class GlobalTurboNIGO_V2(nn.Module):
         # Decode
         u_pred = self.decoder(z_refined)
 
-        return u_pred, z_base, alpha, beta, k_coeffs, r_coeffs
+        return u_pred, z_base, k_coeffs, r_coeffs, alpha, beta

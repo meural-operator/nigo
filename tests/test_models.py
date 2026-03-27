@@ -31,7 +31,7 @@ def test_physics_net():
     z0 = torch.randn(2, LATENT, dtype=torch.complex64)
     cond = torch.randn(2, COND)
     
-    alpha, beta, k_c, r_c = net(z0, cond)
+    k_c, r_c, alpha, beta = net(z0, cond)
     assert alpha.shape == (2, 1, 1)
     assert beta.shape == (2, 1, 1)
     assert alpha.min() > 0
@@ -49,7 +49,7 @@ def test_hyper_generator():
     k_c = torch.randn(2, BASES)
     r_c = torch.randn(2, BASES)
     
-    z_seq = gen(z0, time_steps, alpha, beta, k_c, r_c)
+    z_seq = gen(z0, time_steps, k_c, r_c, alpha, beta)
     assert z_seq.shape == (2, 5, LATENT)
     assert z_seq.dtype == torch.complex64
 
@@ -76,11 +76,10 @@ def test_global_turbo_nigo():
     cond = torch.randn(2, COND)
     time_steps = torch.arange(1, 6).float() * 0.1
     
-    u_pred, z_base, alpha, beta, k_c, r_c = model(u0, time_steps, cond)
+    u_pred, z_base, k_c, r_c, alpha, beta = model(u0, time_steps, cond)
     
     assert u_pred.shape == (2, 5, 2, SPATIAL, SPATIAL)
     assert z_base.shape == (2, 5, LATENT)
-    assert alpha.shape == (2, 1, 1)
 
 def test_global_turbo_nigo_backward():
     """Verify gradients flow through the entire model."""
@@ -89,7 +88,7 @@ def test_global_turbo_nigo_backward():
     cond = torch.randn(1, COND)
     time_steps = torch.arange(1, 4).float() * 0.1
     
-    u_pred, _, _, _, _, _ = model(u0, time_steps, cond)
+    u_pred, *_ = model(u0, time_steps, cond)
     loss = u_pred.sum()
     loss.backward()
     

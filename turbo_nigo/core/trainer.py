@@ -221,6 +221,8 @@ class Trainer:
         total_loss = 0.0
         total_mse = 0.0
         total_prior = 0.0
+        total_alpha = 0.0
+        total_beta = 0.0
         grad_norms = []
 
         pbar = tqdm(self.train_loader, desc=f"Ep {epoch:03d}", leave=False)
@@ -235,7 +237,7 @@ class Trainer:
                 device_type=self.device,
                 enabled=self.config.get("use_amp", True),
             ):
-                u_pred, _, k_c, r_c = self.model(
+                u_pred, _, k_c, r_c, alpha, beta = self.model(
                     u0, self.time_steps, cond
                 )
                 mse = F.mse_loss(u_pred, u_seq_gt)
@@ -264,6 +266,8 @@ class Trainer:
             total_loss += loss.item()
             total_mse += mse.item()
             total_prior += physics_prior.item()
+            total_alpha += alpha.mean().item()
+            total_beta += beta.mean().item()
             pbar.set_postfix(
                 {"mse": f"{mse.item():.4e}", "lr": f"{self._get_lr():.2e}"}
             )
@@ -273,6 +277,8 @@ class Trainer:
             "train_loss": total_loss / n,
             "train_mse": total_mse / n,
             "train_physics_prior": total_prior / n,
+            "alpha_mean": total_alpha / n,
+            "beta_mean": total_beta / n,
             "grad_norm": float(np.mean(grad_norms)) if grad_norms else 0.0,
         }
 
@@ -281,6 +287,8 @@ class Trainer:
         self.model.eval()
         total_loss = 0.0
         total_mse = 0.0
+        total_alpha = 0.0
+        total_beta = 0.0
 
         with torch.no_grad():
             for u0, u_seq_gt, cond in self.val_loader:
@@ -292,7 +300,7 @@ class Trainer:
                     device_type=self.device,
                     enabled=self.config.get("use_amp", True),
                 ):
-                    u_pred, _, k_c, r_c = self.model(
+                    u_pred, _, k_c, r_c, alpha, beta = self.model(
                         u0, self.time_steps, cond
                     )
                     mse = F.mse_loss(u_pred, u_seq_gt)
@@ -303,11 +311,15 @@ class Trainer:
 
                 total_loss += loss.item()
                 total_mse += mse.item()
+                total_alpha += alpha.mean().item()
+                total_beta += beta.mean().item()
 
         n = len(self.val_loader)
         return {
             "val_loss": total_loss / n,
             "val_mse": total_mse / n,
+            "val_alpha": total_alpha / n,
+            "val_beta": total_beta / n,
         }
 
     def train(self):

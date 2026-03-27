@@ -68,7 +68,7 @@ class TestGeneratorStructure:
 
         z0 = torch.randn(1, 8, dtype=torch.complex64)
         cond = torch.randn(1, 2)
-        alpha, beta, k_c, r_c = net(z0, cond)
+        k_c, r_c, alpha, beta = net(z0, cond)
 
         A, R_sum = self._build_A(gen, alpha, beta, k_c, r_c)
 
@@ -88,7 +88,7 @@ class TestGeneratorStructure:
 
         z0 = torch.randn(1, 8, dtype=torch.complex64)
         cond = torch.randn(1, 2)
-        alpha, beta, k_c, r_c = net(z0, cond)
+        k_c, r_c, alpha, beta = net(z0, cond)
 
         A, _ = self._build_A(gen, alpha, beta, k_c, r_c)
 
@@ -107,7 +107,7 @@ class TestGeneratorStructure:
         for _ in range(20):
             z0 = torch.randn(4, 8, dtype=torch.complex64)
             cond = torch.randn(4, 2)
-            alpha, beta, _, _ = net(z0, cond)
+            _, _, alpha, beta = net(z0, cond)
             assert torch.all(alpha > 0), f"α not positive: {alpha.min().item()}"
             assert torch.all(beta > 0), f"β not positive: {beta.min().item()}"
 
@@ -120,12 +120,12 @@ class TestGeneratorStructure:
 
         z0 = torch.randn(1, 8, dtype=torch.complex64)
         cond = torch.randn(1, 2)
-        alpha, beta, k_c, r_c = net(z0, cond)
+        k_c, r_c, alpha, beta = net(z0, cond)
 
         time_steps = torch.arange(1, 51).float() * 0.1  # 50 steps
 
         with torch.no_grad():
-            z_evolved = gen(z0, time_steps, alpha, beta, k_c, r_c)  # (1, 50, 8)
+            z_evolved = gen(z0, time_steps, k_c, r_c, alpha, beta)  # (1, 50, 8)
 
         # Compute ||z(t)||^2 at each step
         energy = (z_evolved.abs() ** 2).sum(dim=-1).squeeze(0).numpy()  # (50,)

@@ -104,7 +104,7 @@ class TestGlobalTurboNIGO_V2:
         cond = torch.randn(2, 4)
         time_steps = torch.arange(1, 6).float() * 0.1
 
-        u_pred, z_base, alpha, beta, k_c, r_c = model(x, time_steps, cond)
+        u_pred, z_base, k_c, r_c, alpha, beta = model(x, time_steps, cond)
         assert u_pred.shape == (2, 5, 2, 32, 32)
         assert z_base.shape == (2, 5, 16)
         assert torch.all(alpha > 0)

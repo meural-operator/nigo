@@ -22,8 +22,8 @@ def compute_lyapunov_divergence(model, u0: torch.Tensor, steps: int, cond: torch
     time_steps = torch.arange(1, steps + 1).float().to(device) * dt
     
     with torch.no_grad():
-        traj, _, _, _, _, _ = model(u0, time_steps, cond)
-        traj_pert, _, _, _, _, _ = model(u0_pert, time_steps, cond)
+        traj, *_ = model(u0, time_steps, cond)
+        traj_pert, *_ = model(u0_pert, time_steps, cond)
         
         diff = traj - traj_pert
         diff_flat = diff.reshape(u0.shape[0], steps, -1)

@@ -4,12 +4,12 @@ from .model_ablations import (
     Ablation2_NoDissipativeTurboNIGO,
     Ablation3_DenseGeneratorTurboNIGO,
     Ablation4_NoRefinerTurboNIGO,
-    Ablation5_ScaledTurboNIGO
+    Ablation5_UnscaledTurboNIGO
 )
 
 __all__ = [
     "NoSkewGenerator", "NoDissipativeGenerator", "DenseGenerator",
     "Ablation1_NoSkewTurboNIGO", "Ablation2_NoDissipativeTurboNIGO",
     "Ablation3_DenseGeneratorTurboNIGO", "Ablation4_NoRefinerTurboNIGO",
-    "Ablation5_ScaledTurboNIGO"
+    "Ablation5_UnscaledTurboNIGO"
 ]

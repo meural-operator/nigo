@@ -51,7 +51,8 @@ def test_training_pipeline_integration(mock_flow_data, tmp_path):
         "use_amp": False,
         "device": "cpu",
         "physics_prior_weight": 0.001,
-        "num_bases": 2
+        "num_bases": 2,
+        "compile": False
     }
     
     paths = get_paths(config)

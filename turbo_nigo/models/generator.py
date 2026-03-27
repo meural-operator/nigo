@@ -16,13 +16,15 @@ class HyperTurbulentGenerator(nn.Module):
         self.R_bases = nn.Parameter(torch.randn(num_bases, latent_dim, latent_dim) * 0.01)
 
     def forward(self, z0: torch.Tensor, time_steps: torch.Tensor, 
-                k_coeffs: torch.Tensor, r_coeffs: torch.Tensor) -> torch.Tensor:
+                k_coeffs: torch.Tensor, r_coeffs: torch.Tensor,
+                alpha: torch.Tensor, beta: torch.Tensor) -> torch.Tensor:
         """
         Evolves z0 over time_steps.
         Args:
             z0: (B, D) complex initial state
             time_steps: (S,) time steps to evaluate
             k_coeffs, r_coeffs: (B, num_bases) coefficients
+            alpha, beta: (B, 1) global scaling parameters
             
         Returns:
             z_evolved: (B, S, D) complex evolved states
@@ -38,8 +40,11 @@ class HyperTurbulentGenerator(nn.Module):
         R_sum = (rc * R_b).sum(dim=1)
         
         # Construct Skew-symmetric and Negative-definite parts
-        # A = Skew + NegDef
-        A = (K_sum - K_sum.transpose(-1,-2)) + (- (R_sum.transpose(-1,-2) @ R_sum))
+        # A = alpha * (K - K^T) - beta * (R^T R)
+        alpha_view = alpha.view(-1, 1, 1)
+        beta_view = beta.view(-1, 1, 1)
+        
+        A = alpha_view * (K_sum - K_sum.transpose(-1,-2)) + beta_view * (- (R_sum.transpose(-1,-2) @ R_sum))
         
         # Vectorized Matrix Exp for all time steps at once
         S = time_steps.shape[0]

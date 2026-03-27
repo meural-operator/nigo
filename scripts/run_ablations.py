@@ -14,7 +14,7 @@ from turbo_nigo.models.ablations import (
     Ablation2_NoDissipativeTurboNIGO,
     Ablation3_DenseGeneratorTurboNIGO,
     Ablation4_NoRefinerTurboNIGO,
-    Ablation5_ScaledTurboNIGO
+    Ablation5_UnscaledTurboNIGO
 )
 from turbo_nigo.core import Trainer
 
@@ -60,7 +60,7 @@ def main():
     
     models_to_test = [
         ("Baseline", GlobalTurboNIGO),
-        ("ScaledGenerator", Ablation5_ScaledTurboNIGO),
+        ("UnscaledGenerator", Ablation5_UnscaledTurboNIGO),
         ("NoSkew", Ablation1_NoSkewTurboNIGO),
         ("NoDissipative", Ablation2_NoDissipativeTurboNIGO),
         ("DenseGenerator", Ablation3_DenseGeneratorTurboNIGO),

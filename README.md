@@ -154,7 +154,7 @@ The ablation suite quantifies the contribution of each architectural component i
 | **No Dissipative (Abl. 2)** | Remove $L_d$ | $A = L_s$ (energy-conserving only) |
 | **Dense Generator (Abl. 3)** | Bypass Lie factorization | $A = \text{MLP}(z_0)$ (unconstrained) |
 | **No Refiner (Abl. 4)** | Skip temporal refinement | $z_{\text{refined}} = z_{\text{base}}$ |
-| **With Scaling (Abl. 5)** | Re-introduce $\alpha, \beta$ scalars | $A = \alpha L_s + \beta L_d$ |
+| **Unscaled Generator (Abl. 5)** | Force $\alpha=1, \beta=1$ | $A = L_s + L_d$ (unscaled) |
 
 **Run ablations:**
 ```bash

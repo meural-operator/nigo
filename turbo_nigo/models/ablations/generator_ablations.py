@@ -8,14 +8,16 @@ class NoSkewGenerator(HyperTurbulentGenerator):
     A = beta * N
     """
     def forward(self, z0: torch.Tensor, time_steps: torch.Tensor, 
-                k_coeffs: torch.Tensor, r_coeffs: torch.Tensor) -> torch.Tensor:
+                k_coeffs: torch.Tensor, r_coeffs: torch.Tensor,
+                alpha: torch.Tensor, beta: torch.Tensor) -> torch.Tensor:
         
         R_b = self.R_bases.unsqueeze(0)
         rc = r_coeffs.view(-1, self.num_bases, 1, 1)
         R_sum = (rc * R_b).sum(dim=1)
         
         # Construct ONLY Negative-definite part
-        A = (- (R_sum.transpose(-1,-2) @ R_sum))
+        beta_view = beta.view(-1, 1, 1)
+        A = beta_view * (- (R_sum.transpose(-1,-2) @ R_sum))
         
         S_steps = time_steps.shape[0]
         A_t = A.unsqueeze(1) * time_steps.view(1, S_steps, 1, 1).to(z0.real.device)
@@ -37,14 +39,16 @@ class NoDissipativeGenerator(HyperTurbulentGenerator):
     A = alpha * S
     """
     def forward(self, z0: torch.Tensor, time_steps: torch.Tensor, 
-                k_coeffs: torch.Tensor, r_coeffs: torch.Tensor) -> torch.Tensor:
+                k_coeffs: torch.Tensor, r_coeffs: torch.Tensor,
+                alpha: torch.Tensor, beta: torch.Tensor) -> torch.Tensor:
         
         K_b = self.K_bases.unsqueeze(0)
         kc = k_coeffs.view(-1, self.num_bases, 1, 1)
         K_sum = (kc * K_b).sum(dim=1)
         
         # Construct ONLY Skew-symmetric part
-        A = (K_sum - K_sum.transpose(-1,-2))
+        alpha_view = alpha.view(-1, 1, 1)
+        A = alpha_view * (K_sum - K_sum.transpose(-1,-2))
         
         S_steps = time_steps.shape[0]
         A_t = A.unsqueeze(1) * time_steps.view(1, S_steps, 1, 1).to(z0.real.device)
@@ -91,7 +95,8 @@ class DenseGenerator(nn.Module):
         nn.init.zeros_(self.dense_proj[0].bias)
 
     def forward(self, z0: torch.Tensor, time_steps: torch.Tensor, 
-                k_coeffs: torch.Tensor, r_coeffs: torch.Tensor) -> torch.Tensor:
+                k_coeffs: torch.Tensor, r_coeffs: torch.Tensor,
+                alpha: torch.Tensor, beta: torch.Tensor) -> torch.Tensor:
         
         # Flatten the parameters into a single vector
         B = z0.shape[0]

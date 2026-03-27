@@ -39,7 +39,7 @@ class GlobalTurboNIGO(nn.Module):
             initial_size=enc_spatial
         )
 
-    def forward(self, u0: torch.Tensor, time_steps: torch.Tensor, cond: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    def forward(self, u0: torch.Tensor, time_steps: torch.Tensor, cond: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Args:
             u0: (B, C, H, W) initial field
@@ -49,10 +49,11 @@ class GlobalTurboNIGO(nn.Module):
             u_pred: (B, S, C, H, W) predicted sequence
             z_base: Unrefined trajectory in latent space
             k_coeffs, r_coeffs: Generator basis coefficients
+            alpha, beta: Scaling parameters
         """
         z0 = self.encoder(u0, cond)
-        k_coeffs, r_coeffs = self.cond_net(z0, cond)
-        z_base = self.generator(z0, time_steps, k_coeffs, r_coeffs)
+        k_coeffs, r_coeffs, alpha, beta = self.cond_net(z0, cond)
+        z_base = self.generator(z0, time_steps, k_coeffs, r_coeffs, alpha, beta)
         z_refined = self.refiner(z_base)
         u_pred = self.decoder(z_refined)
-        return u_pred, z_base, k_coeffs, r_coeffs
+        return u_pred, z_base, k_coeffs, r_coeffs, alpha, beta
