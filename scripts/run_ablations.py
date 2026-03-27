@@ -2,6 +2,13 @@ import sys
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
+# Windows Conda DLL workaround for PyTorch (Python >= 3.8 ignores PATH for DLLs)
+if os.name == 'nt' and 'CONDA_PREFIX' in os.environ:
+    dll_path = os.path.join(os.environ['CONDA_PREFIX'], 'Library', 'bin')
+    if os.path.exists(dll_path):
+        try: os.add_dll_directory(dll_path)
+        except Exception: pass
+
 import torch
 from torch.utils.data import DataLoader
 
