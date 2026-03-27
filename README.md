@@ -1,16 +1,16 @@
-# TurboNIGO: Neural Invariant Group Operator Learning for Turbulent Flows
+# TurboNIGO: Structure-Preserving Neural Operators via Lyapunov-Stable Latent Dynamics
 
 > **Anonymous Submission — ICML 2026**
-> This repository accompanies the paper *"TurboNIGO: Lyapunov-Stable Neural Operator Learning via Lie-Algebraic Generators for Turbulent Flow Prediction"* (under double-blind review).
+> This repository accompanies the paper *"TurboNIGO: Structure-Preserving Neural Operators via Lyapunov-Stable Latent Dynamics"* (under double-blind review). NIGO stands for **Neural Infinitesimal Generator Operator**.
 
 ---
 
 ## Abstract
 
-We propose **TurboNIGO**, a neural operator framework that embeds Lie-algebraic structure into the latent dynamics for learning turbulent flow evolution. The model factorizes the latent generator matrix $A(u_0)$ into a skew-symmetric (energy-conserving) component $L_s$ and a negative semi-definite (dissipative) component $L_d$, guaranteeing **Lyapunov stability** by construction. A physics-informed inference network maps initial conditions and conditioning parameters into local basis coefficients, which are composed via matrix exponential evolution to produce future states. A multi-scale temporal refiner module further enhances long-horizon fidelity.
+We propose **TurboNIGO** (Turbulent **Neural Infinitesimal Generator Operator**), a structure-preserving neural operator framework that models temporal evolution as a continuous-time dynamical system on a latent manifold. The model parameterizes the infinitesimal generator as $A = \alpha(K - K^\top) - \beta R^\top R$, a sum of skew-symmetric (energy-conserving) and dissipative components, guaranteeing **Lyapunov stability** by construction. A physics-informed inference network maps initial conditions and conditioning parameters into local basis coefficients $\{k_b, r_b\}$ and adaptive scaling parameters $\alpha, \beta$, which are composed via matrix exponential evolution $z(t) = \exp(At) \cdot z_0$ to produce future states. A multi-scale temporal refiner module further enhances long-horizon fidelity.
 
 **Key contributions:**
-- Structurally-guaranteed Lyapunov stability via Lie-algebraic decomposition $A = L_s + L_d$
+- Structurally-guaranteed Lyapunov stability via the decomposition $A = \alpha(K - K^\top) - \beta R^\top R$
 - Physics-conditioned operator learning with zero-shot generalization across Reynolds numbers
 - Comprehensive ablation study isolating the contribution of each architectural component
 
@@ -130,7 +130,7 @@ Key configuration flags in `default_config.yaml`:
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `epochs` | 200 | Training epochs |
+| `epochs` | 300 | Training epochs |
 | `batch_size` | 64 | Mini-batch size |
 | `learning_rate` | 2e-4 | AdamW learning rate |
 | `latent_dim` | 64 | Latent space dimension |
@@ -149,12 +149,12 @@ The ablation suite quantifies the contribution of each architectural component i
 
 | Ablation | What Changes | Mathematical Effect |
 |----------|-------------|-------------------|
-| **Baseline** | Full TurboNIGO | $A = L_s + L_d$ |
-| **No Skew (Abl. 1)** | Remove $L_s$ | $A = L_d$ (purely dissipative) |
-| **No Dissipative (Abl. 2)** | Remove $L_d$ | $A = L_s$ (energy-conserving only) |
-| **Dense Generator (Abl. 3)** | Bypass Lie factorization | $A = \text{MLP}(z_0)$ (unconstrained) |
+| **Baseline** | Full TurboNIGO | $A = \alpha(K-K^\top) - \beta R^\top R$ |
+| **No Skew (Abl. 1)** | Remove $K-K^\top$ | $A = -\beta R^\top R$ (purely dissipative) |
+| **No Dissipative (Abl. 2)** | Remove $R^\top R$ | $A = \alpha(K-K^\top)$ (energy-conserving only) |
+| **Dense Generator (Abl. 3)** | Bypass structured factorization | $A = \text{MLP}(z_0)$ (unconstrained) |
 | **No Refiner (Abl. 4)** | Skip temporal refinement | $z_{\text{refined}} = z_{\text{base}}$ |
-| **Unscaled Generator (Abl. 5)** | Force $\alpha=1, \beta=1$ | $A = L_s + L_d$ (unscaled) |
+| **Unscaled Generator (Abl. 5)** | Force $\alpha=1, \beta=1$ | $A = (K-K^\top) - R^\top R$ (fixed scale) |
 
 **Run ablations:**
 ```bash
@@ -196,8 +196,8 @@ python scripts/run_sensitivity.py --config turbo_nigo/configs/default_config.yam
                            │ {c_b}
                            ▼
                ┌───────────────────────┐
-               │  HyperTurbulentGen.   │    Lₛ = Σ cᵇ Kᵇ   (skew-symmetric)
-               │  A = Lₛ + L_d        │    L_d = Σ cᵇ Rᵇ   (neg. semi-def.)
+               │  HyperTurbulentGen.   │    A = α(K-Kᵀ) - βRᵀR
+               │  Infinitesimal Gen.   │    (skew-symm. + dissipative)
                │  z(t) = expm(At)·z₀  │    Lyapunov stable ✓
                └───────────┬───────────┘
                            │ z(t₁), ..., z(tₜ)
