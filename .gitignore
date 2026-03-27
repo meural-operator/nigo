@@ -1,0 +1,49 @@
+# =============================================================================
+# TurboNIGO — .gitignore
+# =============================================================================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+*.so
+
+# --- Datasets (too large for git) ---
+datasets/
+*.h5
+*.hdf5
+*.nc
+
+# --- Results & Checkpoints ---
+results/
+results_ks/
+figures/
+*.pth
+*.pt
+
+# --- Environment ---
+.env
+*.log
+.vscode/
+.idea/
+
+# --- OS ---
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# --- Temp files ---
+*.txt
+/tmp/
+*.tmp
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+*.ipynb
+
+# --- Conda ---
+*.conda

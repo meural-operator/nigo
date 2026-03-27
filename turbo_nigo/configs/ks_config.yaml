@@ -1,0 +1,66 @@
+# =============================================================================
+# TurboNIGO Configuration — Kuramoto-Sivashinsky (KS) Dataset
+# For use on secondary system. Modify paths as needed for target machine.
+# =============================================================================
+
+experiment_name: "Turbo_NIGO_KS_Ablation"
+
+# --- PATHS (Modify these for your target system) ---
+data_root: "./datasets/KS_dataset/KS_ML_DATASET.h5"
+results_dir: "./results_ks"
+
+# --- Training Hyperparameters ---
+epochs: 200
+batch_size: 64
+learning_rate: 0.0002
+seq_len: 20
+dt: 0.1
+
+# --- Model Architecture ---
+# NOTE: in_channels=1 for 1D KS (single scalar field u(x,t))
+# spatial_size refers to the 1D spatial grid (512 points, treated as 1×512 or reshaped)
+latent_dim: 64
+width: 32
+num_bases: 8
+cond_dim: 4
+in_channels: 1
+
+# --- Physics and Prior Weights ---
+physics_prior_weight: 0.001
+
+# --- LR Scheduler ---
+scheduler: "cosine"
+warmup_epochs: 5
+min_lr: 1.0e-6
+plateau_factor: 0.5
+plateau_patience: 10
+step_size: 50
+step_gamma: 0.5
+
+# --- Training Robustness ---
+grad_clip_norm: 1.0
+early_stopping_patience: 0
+
+# --- Logging ---
+use_tensorboard: true
+log_grad_norm: true
+
+# --- Checkpointing & Resumability ---
+checkpoint_freq: 5
+resume_from: null
+
+# --- System Settings ---
+seed: 42
+num_workers: 8
+use_amp: true
+device: "cuda"
+
+# --- Compute Optimizations ---
+compile: false
+tf32: true
+cudnn_benchmark: true
+
+# --- KS Dataset-Specific ---
+ks_temporal_stride: 4        # subsample every 4th timestep from the 768 steps
+ks_train_cases: 5000          # use 5000 of 40000 trajectories for faster experiments
+ks_spatial_res: 64            # downsample 512 -> 64 spatial points (reshape to 1x64x1 -> 1x8x8 for 2D conv compat)
