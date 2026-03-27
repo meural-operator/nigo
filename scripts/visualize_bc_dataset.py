@@ -120,14 +120,35 @@ def _save_fig(fig, path_stem):
 
 
 def load_case(case_dir):
-    """Load u, v, and metadata from a case directory."""
+    """Load u, v, and metadata from a case directory.
+
+    Reads 'case.json' (primary) or 'meta.json' (fallback).
+    Computes Re = density * vel_in * D / viscosity if not present.
+    """
     u = np.load(os.path.join(case_dir, 'u.npy')).astype(np.float32)
     v = np.load(os.path.join(case_dir, 'v.npy')).astype(np.float32)
     meta = {}
-    meta_path = os.path.join(case_dir, 'meta.json')
-    if os.path.exists(meta_path):
-        with open(meta_path) as f:
-            meta = json.load(f)
+    for fname in ['case.json', 'meta.json']:
+        fpath = os.path.join(case_dir, fname)
+        if os.path.exists(fpath):
+            with open(fpath) as f:
+                meta = json.load(f)
+            break
+
+    # Compute Reynolds number if not explicitly stored
+    if 'Re' not in meta:
+        rho = float(meta.get('density', 0))
+        U = float(meta.get('vel_in', meta.get('inlet_velocity', 0)))
+        r = float(meta.get('radius', 0))
+        mu = float(meta.get('viscosity', 1))
+        D = 2.0 * r  # characteristic length = cylinder diameter
+        if mu > 0 and D > 0:
+            meta['Re'] = rho * U * D / mu
+
+    # Normalize key names for downstream use
+    if 'vel_in' in meta and 'inlet_velocity' not in meta:
+        meta['inlet_velocity'] = meta['vel_in']
+
     return u, v, meta
 
 
