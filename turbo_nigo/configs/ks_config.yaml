@@ -10,7 +10,7 @@ data_root: "./datasets/KS_dataset/KS_ML_DATASET.h5"
 results_dir: "./results_ks"
 
 # --- Training Hyperparameters ---
-epochs: 200
+epochs: 300
 batch_size: 64
 learning_rate: 0.0002
 seq_len: 20

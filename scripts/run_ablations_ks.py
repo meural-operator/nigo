@@ -223,7 +223,7 @@ def main():
     # --- Ablation Suite ---
     models_to_test = [
         ("Baseline",        GlobalTurboNIGO),
-        ("ScaledGenerator", Ablation5_ScaledTurboNIGO),
+        ("UnscaledGenerator", Ablation5_UnscaledTurboNIGO),
         ("NoSkew",          Ablation1_NoSkewTurboNIGO),
         ("NoDissipative",   Ablation2_NoDissipativeTurboNIGO),
         ("DenseGenerator",  Ablation3_DenseGeneratorTurboNIGO),
