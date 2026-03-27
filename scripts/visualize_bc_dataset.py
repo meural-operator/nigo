@@ -19,6 +19,8 @@ Usage:
 
 import sys
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
 import glob
 import argparse
 import json

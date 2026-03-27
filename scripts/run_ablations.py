@@ -1,5 +1,7 @@
 import sys
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
 import torch
 from torch.utils.data import DataLoader
 
