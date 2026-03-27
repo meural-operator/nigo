@@ -68,23 +68,35 @@ We propose **TurboNIGO** (Turbulent **Neural Infinitesimal Generator Operator**)
 
 ## Requirements
 
-```
-Python >= 3.10
-PyTorch >= 2.0
-NumPy
-SciPy
-h5py
-matplotlib
-PyYAML
-tqdm
-tensorboard (optional)
+- Python ≥ 3.10 (tested on 3.13)
+- PyTorch ≥ 2.10 with CUDA (tested on cu130)
+- NVIDIA GPU with compatible drivers
+
+**Option A — Conda (recommended):**
+
+```bash
+conda env create -f environment.yml
+conda activate turbo_nigo
 ```
 
-**Setup:**
+**Option B — pip:**
+
 ```bash
-conda create -n cfd python=3.13
-conda activate cfd
-pip install torch torchvision numpy scipy h5py matplotlib pyyaml tqdm tensorboard pytest
+python -m venv .venv
+.venv\Scripts\activate                # Windows
+# source .venv/bin/activate           # Linux/macOS
+
+# Install PyTorch with CUDA first (adjust cu130 to your CUDA version):
+pip install torch==2.10.0+cu130 torchvision==0.25.0+cu130 --extra-index-url https://download.pytorch.org/whl/cu130
+
+# Install remaining dependencies:
+pip install -r requirements.txt
+```
+
+**Verify GPU:**
+
+```bash
+python -c "import torch; assert torch.cuda.is_available(), 'No GPU detected'; print(f'GPU: {torch.cuda.get_device_name(0)}, CUDA: {torch.version.cuda}')"
 ```
 
 ---
