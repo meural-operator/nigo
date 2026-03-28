@@ -22,7 +22,7 @@ class GlobalTurboNIGO(nn.Module):
         in_channels: number of input field channels (default 2 for u, v)
     """
     def __init__(self, latent_dim: int = 64, num_bases: int = 8, cond_dim: int = 4, 
-                 width: int = 32, spatial_size: int = 64, in_channels: int = 2):
+                 width: int = 64, spatial_size: int = 64, in_channels: int = 2):
         super().__init__()
         self.encoder = SpectralEncoder(
             in_channels=in_channels, latent_dim=latent_dim, width=width, 

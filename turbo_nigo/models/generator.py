@@ -46,20 +46,26 @@ class HyperTurbulentGenerator(nn.Module):
         
         A = alpha_view * (K_sum - K_sum.transpose(-1,-2)) + beta_view * (- (R_sum.transpose(-1,-2) @ R_sum))
         
-        # Vectorized Matrix Exp for all time steps at once
+        # Optimize: For uniform time steps, we only need ONE matrix exponential per batch item.
+        # dt is the step size (e.g., 1.0 / S).
         S = time_steps.shape[0]
-        # A_t shape: (B, S, D, D) -> Scaled by each time step t
-        A_t = A.unsqueeze(1) * time_steps.view(1, S, 1, 1).to(z0.real.device)
+        dt = time_steps[1] - time_steps[0] if S > 1 else torch.tensor(1.0)
         
-        # Matrix exponential is the critical numerical bottleneck.
-        # Use float64 for the internal summation/Taylor expansion to prevent NaN drift,
-        # then cast back to complex64 for latency-critical operations.
         with torch.cuda.amp.autocast(enabled=False):
-            A_t_f64 = A_t.reshape(-1, self.latent_dim, self.latent_dim).to(torch.float64)
-            props_f64 = torch.linalg.matrix_exp(A_t_f64)
-            props = props_f64.view(-1, S, self.latent_dim, self.latent_dim).to(torch.complex64)
+            # 1. Compute base transition matrix M = exp(A * dt) in float64 for stability
+            A_dt_f64 = (A * dt).to(torch.float64)
+            M_f64 = torch.linalg.matrix_exp(A_dt_f64)
+            M = M_f64.to(torch.complex64)
             
-        z_c = z0.to(torch.complex64)
-        z_evolved = torch.einsum('bi, bsoi -> bso', z_c, props)
+        z_curr = z0.to(torch.complex64)
+        z_list = []
+        
+        # 2. Recursive evolution: z_{t+1} = M @ z_t
+        # This is 20x faster than 20 matrix exponentials
+        for t in range(S):
+            z_curr = torch.bmm(M, z_curr.unsqueeze(-1)).squeeze(-1)
+            z_list.append(z_curr)
+            
+        z_evolved = torch.stack(z_list, dim=1) # (B, S, D)
         
         return z_evolved

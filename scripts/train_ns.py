@@ -187,7 +187,7 @@ def main():
     parser.add_argument('--resume_from', type=str, default=None)
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--batch_size', type=int, default=64)
-    parser.add_argument('--lr', type=float, default=5e-4)
+    parser.add_argument('--lr', type=float, default=2e-4)
     parser.add_argument('--seq_len', type=int, default=20)
     parser.add_argument('--workers', type=int, default=4)
     args = parser.parse_args()
@@ -219,15 +219,15 @@ def main():
     val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False,
                             num_workers=0, pin_memory=use_amp)
 
-    print(f"Initializing GlobalTurboNIGO...")
-    model = GlobalTurboNIGO(latent_dim=64, num_bases=8, cond_dim=4, width=32, spatial_size=256, in_channels=2)
+    print(f"Initializing GlobalTurboNIGO (High-Res Edition)...")
+    model = GlobalTurboNIGO(latent_dim=64, num_bases=8, cond_dim=4, width=64, spatial_size=256, in_channels=2)
     model.to(device)
     
     optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
     scaler = GradScaler() if use_amp else None
     
-    # Proper fix: Reduce LR on plateau to stabilize final convergence
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5)
+    # Proper upgrade: Cosine Annealing with Warm Restarts for better exploration/stability
+    scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2, eta_min=1e-6)
     
     start_epoch = 1
     best_val_loss = float('inf')
@@ -251,8 +251,8 @@ def main():
         train_loss = train_one_epoch(model, train_loader, optimizer, scaler, device, use_amp)
         val_loss = validate(model, val_loader, device)
         
-        # Proper fix: Step scheduler with validation loss
-        scheduler.step(val_loss)
+        # Proper upgrade: Step scheduler with epoch count
+        scheduler.step()
         
         print(f"Train Loss: {train_loss:.6f} | Val Loss: {val_loss:.6f}")
         

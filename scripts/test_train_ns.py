@@ -51,7 +51,9 @@ class TestTrainNS(unittest.TestCase):
         ckpt_path = os.path.join(self.output_dir, "test_ckpt.pth")
         
         # 2. Invoke checkpoint save sequence 
-        save_checkpoint(ckpt_path, epoch, model, optimizer, scaler, best_loss)
+        scheduler = MagicMock()
+        scheduler.state_dict.return_value = {"T_0": 10}
+        save_checkpoint(ckpt_path, epoch, model, optimizer, scaler, scheduler, best_loss)
         
         self.assertTrue(os.path.exists(ckpt_path), "Checkpoint failed to save to disk")
         
