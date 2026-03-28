@@ -27,6 +27,11 @@ def seed_everything(seed: int = 42):
 def get_paths(config: Dict) -> Dict[str, str]:
     """Generates standard directory structure based on the root results_dir."""
     root = config.get("results_dir", "./results")
+    
+    experiment_name = config.get("experiment_name", "")
+    if experiment_name:
+        root = os.path.join(root, experiment_name)
+        
     paths = {
         "ckpt": os.path.join(root, "checkpoints"),
         "plot": os.path.join(root, "plots"),
