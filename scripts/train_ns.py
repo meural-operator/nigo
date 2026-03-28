@@ -127,14 +127,24 @@ def train_one_epoch(model, loader, optimizer, scaler, device, use_amp):
         
         if use_amp:
             scaler.scale(loss).backward()
+            
+            # Proper fix: Unscale before clipping
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            
             scaler.step(optimizer)
             scaler.update()
         else:
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
         
-        total_loss += loss.item() * x.size(0)
-        pbar.set_postfix({"loss": loss.item()})
+        # Proper fix: Skip logging if loss is NaN to avoid corrupted metrics
+        if not torch.isnan(loss):
+            total_loss += loss.item() * x.size(0)
+            pbar.set_postfix({"loss": loss.item()})
+        else:
+            print("  [WARN] NaN loss detected in batch, skipping record.")
         
     return total_loss / max(1, len(loader.dataset))
 
@@ -160,12 +170,13 @@ def validate(model, loader, device):
             
     return total_loss / len(loader.dataset)
 
-def save_checkpoint(path, epoch, model, optimizer, scaler, best_loss):
+def save_checkpoint(path, epoch, model, optimizer, scaler, scheduler, best_loss):
     torch.save({
         'epoch': epoch,
         'model_state': model.state_dict(),
         'optimizer_state': optimizer.state_dict(),
-        'scaler_state': scaler.state_dict() if scaler else None,
+        'scaler_state': scaler.scale.state_dict() if scaler else None,
+        'scheduler_state': scheduler.state_dict() if scheduler else None,
         'best_val_loss': best_loss
     }, path)
 
@@ -176,7 +187,7 @@ def main():
     parser.add_argument('--resume_from', type=str, default=None)
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--batch_size', type=int, default=64)
-    parser.add_argument('--lr', type=float, default=1e-3)
+    parser.add_argument('--lr', type=float, default=5e-4)
     parser.add_argument('--seq_len', type=int, default=20)
     parser.add_argument('--workers', type=int, default=4)
     args = parser.parse_args()
@@ -215,6 +226,9 @@ def main():
     optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
     scaler = GradScaler() if use_amp else None
     
+    # Proper fix: Reduce LR on plateau to stabilize final convergence
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, verbose=True)
+    
     start_epoch = 1
     best_val_loss = float('inf')
 
@@ -225,6 +239,8 @@ def main():
         optimizer.load_state_dict(ckpt['optimizer_state'])
         if scaler and 'scaler_state' in ckpt and ckpt['scaler_state']:
             scaler.load_state_dict(ckpt['scaler_state'])
+        if scheduler and 'scheduler_state' in ckpt and ckpt['scheduler_state']:
+            scheduler.load_state_dict(ckpt['scheduler_state'])
         start_epoch = ckpt['epoch'] + 1
         best_val_loss = ckpt.get('best_val_loss', float('inf'))
         print(f"Successfully loaded. Starting at epoch {start_epoch} with previous best loss: {best_val_loss:.6f}")
@@ -235,17 +251,20 @@ def main():
         train_loss = train_one_epoch(model, train_loader, optimizer, scaler, device, use_amp)
         val_loss = validate(model, val_loader, device)
         
+        # Proper fix: Step scheduler with validation loss
+        scheduler.step(val_loss)
+        
         print(f"Train Loss: {train_loss:.6f} | Val Loss: {val_loss:.6f}")
         
-        save_checkpoint(os.path.join(args.output_dir, "latest_model.pth"), epoch, model, optimizer, scaler, best_val_loss)
+        save_checkpoint(os.path.join(args.output_dir, "latest_model.pth"), epoch, model, optimizer, scaler, scheduler, best_val_loss)
         
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             print(" -> (New Best Found)")
-            save_checkpoint(os.path.join(args.output_dir, "best_model.pth"), epoch, model, optimizer, scaler, best_val_loss)
+            save_checkpoint(os.path.join(args.output_dir, "best_model.pth"), epoch, model, optimizer, scaler, scheduler, best_val_loss)
             
         if epoch % 30 == 0:
-            save_checkpoint(os.path.join(args.output_dir, f"checkpoint_epoch_{epoch}.pth"), epoch, model, optimizer, scaler, best_val_loss)
+            save_checkpoint(os.path.join(args.output_dir, f"checkpoint_epoch_{epoch}.pth"), epoch, model, optimizer, scaler, scheduler, best_val_loss)
             print(f" -> Saved periodic 30-epoch checkpoint")
 
 if __name__ == '__main__':

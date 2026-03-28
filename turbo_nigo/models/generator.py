@@ -51,12 +51,13 @@ class HyperTurbulentGenerator(nn.Module):
         # A_t shape: (B, S, D, D) -> Scaled by each time step t
         A_t = A.unsqueeze(1) * time_steps.view(1, S, 1, 1).to(z0.real.device)
         
-        # Matrix exponential is complex mathematically, but inputs here are real
-        # Requires float32 precision for stability, AMP autocast should be disabled
+        # Matrix exponential is the critical numerical bottleneck.
+        # Use float64 for the internal summation/Taylor expansion to prevent NaN drift,
+        # then cast back to complex64 for latency-critical operations.
         with torch.cuda.amp.autocast(enabled=False):
-            A_t_flat = A_t.reshape(-1, self.latent_dim, self.latent_dim).float()
-            props = torch.linalg.matrix_exp(A_t_flat)
-            props = props.view(-1, S, self.latent_dim, self.latent_dim).to(torch.complex64)
+            A_t_f64 = A_t.reshape(-1, self.latent_dim, self.latent_dim).to(torch.float64)
+            props_f64 = torch.linalg.matrix_exp(A_t_f64)
+            props = props_f64.view(-1, S, self.latent_dim, self.latent_dim).to(torch.complex64)
             
         z_c = z0.to(torch.complex64)
         z_evolved = torch.einsum('bi, bsoi -> bso', z_c, props)

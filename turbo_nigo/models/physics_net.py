@@ -33,8 +33,9 @@ class PhysicsInferenceNet(nn.Module):
         k = torch.tanh(out[:, :num_b])
         r = torch.tanh(out[:, num_b:2*num_b])
         
-        # alpha, beta must be > 0
-        alpha = F.softplus(out[:, -2]).view(-1, 1, 1) + 1e-4
-        beta = F.softplus(out[:, -1]).view(-1, 1, 1) + 1e-4
+        # alpha, beta must be > 0 and bounded for numerical stability
+        # Range [1e-4, 10.0] ensures the generator matrix norm is controlled
+        alpha = (torch.sigmoid(out[:, -2]) * 10.0 + 1e-4).view(-1, 1, 1)
+        beta = (torch.sigmoid(out[:, -1]) * 10.0 + 1e-4).view(-1, 1, 1)
         
         return k, r, alpha, beta
