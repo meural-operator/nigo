@@ -117,7 +117,7 @@ datasets/
 │   ├── case000/
 │   │   ├── u.npy                # (T, H, W) velocity x-component
 │   │   ├── v.npy                # (T, H, W) velocity y-component
-│   │   └── meta.json            # {Re, radius, inlet_velocity, bc_type}
+│   │   └── case.json            # {Re, radius, inlet_velocity, bc_type}
 │   └── ...
 └── KS_dataset/
     ├── KS_ML_DATASET.h5         # train: (40000, 768, 512), test: (10000, 768, 512)
