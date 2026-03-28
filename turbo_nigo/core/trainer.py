@@ -405,6 +405,10 @@ class Trainer:
                 else:
                     self.scheduler.step()
 
+            # Always save the absolutely latest epoch for flawless resume capability
+            latest_path = os.path.join(self.paths["ckpt"], "latest.pth")
+            self.save_checkpoint(latest_path, epoch)
+
             # Early stopping
             if patience > 0 and self.epochs_without_improvement >= patience:
                 print(
