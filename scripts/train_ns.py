@@ -227,7 +227,7 @@ def main():
     scaler = GradScaler() if use_amp else None
     
     # Proper fix: Reduce LR on plateau to stabilize final convergence
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, verbose=True)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5)
     
     start_epoch = 1
     best_val_loss = float('inf')
