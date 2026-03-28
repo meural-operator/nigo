@@ -199,6 +199,14 @@ def run_ablation(model_name, ModelClass, base_config, train_loader, val_loader):
     
     trainer = Trainer(model, train_loader, val_loader, config, paths)
     trainer.train()
+    
+    # Pre-computation cleanup for multi-model runs
+    del model
+    del trainer
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    import gc
+    gc.collect()
 
 
 def main():

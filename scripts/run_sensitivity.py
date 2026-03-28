@@ -52,6 +52,18 @@ def run_sensitivity(scale_N, horizon_T, base_config):
     
     trainer = Trainer(model, train_loader, val_loader, config, paths)
     trainer.train()
+    
+    # Pre-computation cleanup for multi-model runs
+    del model
+    del trainer
+    del train_loader
+    del val_loader
+    del train_ds
+    del val_ds
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    import gc
+    gc.collect()
 
 def main():
     base_config = get_args_and_config()
