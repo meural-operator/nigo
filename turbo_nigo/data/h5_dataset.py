@@ -137,3 +137,11 @@ class H5FlowDataset(Dataset):
 
         # x: initial frame, y: target sequence
         return window[0], window[1:], cond
+
+    def get_normalization_stats(self):
+        return {
+            "global_min": self.g_min,
+            "global_max": self.g_max,
+            "cond_mean": None,
+            "cond_std": None
+        }
