@@ -179,6 +179,7 @@ def run_ablation(model_name, ModelClass, base_config, train_loader, val_loader):
     
     config = base_config.copy()
     config["experiment_name"] = f"KS_Ablation_{model_name}"
+    config["checkpoint_freq"] = 30  # Requested 30-epoch intervals for training logs
     
     seed_everything(config.get("seed", 42))
     paths = get_paths(config)
