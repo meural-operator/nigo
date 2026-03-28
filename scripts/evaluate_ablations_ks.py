@@ -146,7 +146,7 @@ def load_trained_model(name, ModelClass, config, device):
         print(f"  ⚠ Checkpoint not found: {ckpt_path}")
         return None
 
-    state = torch.load(ckpt_path, map_location=device)
+    state = torch.load(ckpt_path, map_location=device, weights_only=False)
     model.load_state_dict(state.get("model_state_dict", state))
     model.eval()
     print(f"  ✓ Loaded {name} from {ckpt_path}")
