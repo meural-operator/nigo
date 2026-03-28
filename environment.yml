@@ -1,56 +1,29 @@
-# =============================================================================
-# TurboNIGO — Conda Environment (ICML 2026 Submission)
-# =============================================================================
-#
-# Creates a reproducible environment for training and evaluating TurboNIGO.
-#
-# Usage:
-#   conda env create -f environment.yml
-#   conda activate turbo_nigo
-#
-# GPU Requirement:
-#   This project requires an NVIDIA GPU with CUDA support.
-#   After activating the environment, verify GPU availability:
-#     python -c "import torch; assert torch.cuda.is_available(), 'ERROR: No GPU detected. Install NVIDIA drivers and CUDA toolkit.'; print(f'GPU OK: {torch.cuda.get_device_name(0)}')"
-#
-# Tested on:
-#   - Python 3.13, PyTorch 2.10.0+cu130, CUDA 13.0
-#   - NVIDIA RTX 4000 Ada (48 GB), Windows 11
-# =============================================================================
-
 name: turbo_nigo
-
 channels:
-  - pytorch
-  - nvidia
   - conda-forge
   - defaults
-
 dependencies:
-  - python=3.13
-  - pip
-
-  # --- Core Scientific Stack ---
-  - numpy>=2.3
-  - scipy>=1.17
-  - h5py>=3.15
-
-  # --- Visualization ---
-  - matplotlib>=3.10
-
-  # --- Utilities ---
-  - pyyaml>=6.0
-  - tqdm>=4.67
-
-  # --- Testing ---
-  - pytest>=9.0
-
-  # --- PyTorch (CUDA 13.0) — installed via pip for exact version control ---
+  - python=3.13.11
+  - pip=25.3
+  - vc=14.3
+  - vc14_runtime=14.44.35208
+  - vs2015_runtime=14.44.35208
   - pip:
-    - torch==2.10.0+cu130
-    - torchvision==0.25.0+cu130
-    - --extra-index-url https://download.pytorch.org/whl/cu130
-
-    # --- Optional but recommended ---
-    - tensorboard>=2.18
-    - pytest-mock>=3.15
+      - torch==2.10.0+cu130 --extra-index-url https://download.pytorch.org/whl/cu130
+      - torchvision==0.25.0+cu130 --extra-index-url https://download.pytorch.org/whl/cu130
+      - numpy==2.3.5
+      - scipy==1.17.0
+      - h5py==3.15.1
+      - matplotlib==3.10.8
+      - seaborn==0.13.2
+      - pandas==2.3.3
+      - scikit-learn==1.8.0
+      - tqdm==4.67.1
+      - pyyaml==6.0.3
+      - wandb==0.25.0
+      - pytest==9.0.2
+variables:
+  # Prevents conflicts between Intel MKL and conda-forge OpenMP
+  KMP_DUPLICATE_LIB_OK: "TRUE"
+  # Reduces overhead of PyTorch compiled graphs if Triton is available
+  TORCH_COMPILE_DISABLE: "0"
