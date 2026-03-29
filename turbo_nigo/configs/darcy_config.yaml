@@ -1,0 +1,63 @@
+# =============================================================================
+# TurboNIGO Configuration — Darcy Flow (Elliptic PDE)
+# =============================================================================
+
+experiment_name: "TurboNIGO_Darcy"
+dataset_type: "darcy"
+data_root: "./datasets/darcy/piececonst_r421_N1024_smooth1.mat"
+results_dir: "./results_darcy"
+
+# --- Model Selection ---
+model_type: "v1"
+physics_net_type: "distribution"
+
+# --- Training Hyperparameters ---
+epochs: 300
+batch_size: 64
+learning_rate: 0.0002
+weight_decay: 1.0e-6
+seq_len: 1                      # Single-step operator mapping a(x) → u(x)
+dt: 1.0                         # Pseudo-time for single-step
+
+# --- Model Architecture ---
+latent_dim: 64
+width: 32
+num_bases: 8
+cond_dim: 4                     # Derived from coefficient-field statistics
+in_channels: 1                  # Single scalar field
+spatial_size: 64                 # Downsampled from 421
+
+# --- Loss Weights ---
+physics_prior_weight: 0.001
+spectral_loss_weight: 0.0
+relative_l2_weight: 1.0         # Relative L2 — standard metric for Darcy
+
+# --- LR Scheduler ---
+scheduler: "cosine"
+warmup_epochs: 5
+min_lr: 1.0e-6
+
+# --- Training Robustness ---
+grad_clip_norm: 1.0
+early_stopping_patience: 50
+
+# --- Checkpointing ---
+checkpoint_freq: 30
+resume_from: null
+
+# --- Logging ---
+use_tensorboard: true
+log_grad_norm: true
+
+# --- System ---
+seed: 42
+num_workers: 4
+use_amp: true
+device: "cuda"
+tf32: true
+cudnn_benchmark: true
+compile: false
+
+# --- Darcy-Specific ---
+target_res: 64
+train_split: 0.8

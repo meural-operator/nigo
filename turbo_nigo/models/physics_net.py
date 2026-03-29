@@ -33,8 +33,9 @@ class PhysicsInferenceNet(nn.Module):
         k = torch.tanh(out[:, :num_b])
         r = torch.tanh(out[:, num_b:2*num_b])
         
-        # alpha, beta must be > 0
-        alpha = F.softplus(out[:, -2]).view(-1, 1, 1) + 1e-4
-        beta = F.softplus(out[:, -1]).view(-1, 1, 1) + 1e-4
+        # alpha, beta must be > 0 and capped to avoid numerical instability
+        # 50.0 is a large enough range for most physical dynamics
+        alpha = F.softplus(out[:, -2]).view(-1, 1, 1).clamp(max=50.0) + 1e-4
+        beta = F.softplus(out[:, -1]).view(-1, 1, 1).clamp(max=50.0) + 1e-4
         
         return k, r, alpha, beta

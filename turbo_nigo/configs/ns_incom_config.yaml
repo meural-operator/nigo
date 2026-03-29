@@ -1,0 +1,68 @@
+# =============================================================================
+# TurboNIGO Configuration — Navier-Stokes Incompressible 2D
+# =============================================================================
+
+experiment_name: "TurboNIGO_NS_Incom"
+dataset_type: "ns_incom"
+data_root: "./datasets/ns_incom/ns_incom_inhom_2d_512-102.h5"
+results_dir: "./results_ns"
+
+# --- Model Selection ---
+model_type: "v2"                 # Use V2 with attention-based α/β inference
+physics_net_type: "distribution" # "distribution" or "spatial"
+
+# --- Training Hyperparameters ---
+epochs: 300
+batch_size: 32                   # Smaller batch — higher-res fields use more memory
+learning_rate: 0.0002
+weight_decay: 1.0e-6
+seq_len: 20
+dt: 0.1
+
+# --- Model Architecture ---
+latent_dim: 128                  # Larger latent for high-res fields
+width: 48
+num_bases: 12
+cond_dim: 4                     # Force-field fingerprint (mean/std per channel)
+in_channels: 2                  # u, v velocity components
+spatial_size: 64                 # Bilinear downsampled from 512
+
+# --- Loss Weights ---
+physics_prior_weight: 0.001
+spectral_loss_weight: 0.1       # Important for turbulence
+relative_l2_weight: 0.0
+
+# --- LR Scheduler ---
+scheduler: "cosine"
+warmup_epochs: 5
+min_lr: 1.0e-6
+
+# --- Training Robustness ---
+grad_clip_norm: 1.0
+early_stopping_patience: 50
+
+# --- Checkpointing ---
+checkpoint_freq: 30
+resume_from: null
+
+# --- Logging ---
+use_tensorboard: true
+log_grad_norm: true
+
+# --- System ---
+seed: 42
+num_workers: 8
+use_amp: true
+device: "cuda"
+tf32: true
+cudnn_benchmark: true
+compile: false
+
+# --- NS-Incom Dataset-Specific ---
+target_res: 64                   # Bilinear downsample from 512
+temporal_stride: 20              # dt matching
+window_stride: 5
+train_batches: [0, 1, 2]
+val_batches: [3]
+ns_g_min: -3.0
+ns_g_max: 3.0

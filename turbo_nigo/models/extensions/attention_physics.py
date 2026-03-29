@@ -88,8 +88,8 @@ class DistributionAwareAttentionPhysics(nn.Module):
         attn_out, _ = self.mha(queries, context, context)  # (B, 3, E)
 
         # Decode
-        alpha = F.softplus(self.head_alpha(attn_out[:, 0])) + 1e-6
-        beta = F.softplus(self.head_beta(attn_out[:, 1])) + 1e-6
+        alpha = F.softplus(self.head_alpha(attn_out[:, 0])).clamp(max=50.0) + 1e-6
+        beta = F.softplus(self.head_beta(attn_out[:, 1])).clamp(max=50.0) + 1e-6
         coeffs = self.head_coeffs(attn_out[:, 2])
 
         k_coeffs = torch.tanh(coeffs[:, : coeffs.shape[1] // 2])
@@ -175,8 +175,8 @@ class SpatialPhysicsAttention(nn.Module):
         attn_out, _ = self.mha(queries, context, context)
 
         # Decode
-        alpha = F.softplus(self.head_alpha(attn_out[:, 0])) + 1e-6
-        beta = F.softplus(self.head_beta(attn_out[:, 1])) + 1e-6
+        alpha = F.softplus(self.head_alpha(attn_out[:, 0])).clamp(max=50.0) + 1e-6
+        beta = F.softplus(self.head_beta(attn_out[:, 1])).clamp(max=50.0) + 1e-6
         coeffs = self.head_coeffs(attn_out[:, 2])
 
         k_coeffs = torch.tanh(coeffs[:, : coeffs.shape[1] // 2])
