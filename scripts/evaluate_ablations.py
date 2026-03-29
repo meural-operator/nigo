@@ -68,7 +68,7 @@ def load_trained_model(name, ModelClass, config, device):
         print(f"  ⚠ Checkpoint not found: {ckpt_path}. Skipping {name}.")
         return None
 
-    state = torch.load(ckpt_path, map_location=device)
+    state = torch.load(ckpt_path, map_location=device, weights_only=False)
     if "model_state_dict" in state:
         model.load_state_dict(state["model_state_dict"])
     else:

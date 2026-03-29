@@ -31,7 +31,7 @@ def main():
     
     model_path = os.path.join(config.get("results_dir", "./results"), "checkpoints", "best.pth")
     if os.path.exists(model_path):
-        model.load_state_dict(torch.load(model_path, map_location=device))
+        model.load_state_dict(torch.load(model_path, map_location=device, weights_only=False))
         print(f"Loaded checkpoint from {model_path}")
     else:
         print(f"Checkpoint not found at {model_path}. Evaluation cannot proceed.")

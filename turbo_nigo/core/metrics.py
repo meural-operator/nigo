@@ -16,7 +16,7 @@ def compute_lyapunov_divergence(model, u0: torch.Tensor, steps: int, cond: torch
     u0_pert = u0 + perturbation * noise
     
     # Measure actual init distance
-    init_dist = torch.norm((u0 - u0_pert).reshape(u0.shape[0], -1), p=2, dim=1).item()
+    init_dist = torch.norm((u0 - u0_pert).reshape(u0.shape[0], -1), p=2, dim=1).mean().item()
     
     # Time vector for full rollout
     time_steps = torch.arange(1, steps + 1).float().to(device) * dt
