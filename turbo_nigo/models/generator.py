@@ -62,26 +62,21 @@ class HyperTurbulentGenerator(nn.Module):
         if is_uniform:
             dt = time_steps[0]
             with torch.amp.autocast('cuda', enabled=False):
-                # Proper Spectral Solver: O(1) in time vs O(S) loops
-                A_f64 = (A * dt).to(torch.complex128)
-                L, V = torch.linalg.eig(A_f64)
-                V_inv = torch.linalg.inv(V)
+                # O(1) in matrix_exp: Calculate single high-precision step operator M
+                # epsilon prevents completely singular matrices inside matrix_exp algorithm
+                A_f64 = (A * dt).double() + 1e-6 * torch.eye(self.latent_dim, device=device).unsqueeze(0).double()
+                M_f64 = torch.linalg.matrix_exp(A_f64)
+                M_c64 = M_f64.to(torch.complex64)
                 
-                # t_seq: (S,) timeline indices [1, 2, ..., S]
-                t_seq = torch.arange(1, S + 1, device=device, dtype=torch.complex128)
+                # Sequential roll-out using matrix multiplication (O(S) matmuls, VERY FAST in cuBLAS)
+                props_list = [M_c64]
+                for _ in range(1, S):
+                    props_list.append(props_list[-1] @ M_c64)
                 
-                # Spectral evolution: e^{L * t}
-                # L: (B, D), t_seq: (S,) -> (B, S, D)
-                L_evolved = torch.exp(L.unsqueeze(1) * t_seq.unsqueeze(0).unsqueeze(-1))
+                props = torch.stack(props_list, dim=1) # (B, S, D, D)
                 
-                z_c = z0.to(torch.complex128).unsqueeze(-1)
-                
-                # z_evolved = V @ (L_evolved * (V_inv @ z0))
-                z_in_v = torch.bmm(V_inv, z_c).transpose(1, 2) # (B, 1, D)
-                z_spectral = L_evolved * z_in_v # (B, S, D)
-                z_evolved_c128 = torch.matmul(V.unsqueeze(1), z_spectral.unsqueeze(-1)).squeeze(-1)
-                
-                z_evolved = z_evolved_c128.to(torch.complex64)
+            z_c = z0.to(torch.complex64)
+            z_evolved = torch.einsum('bi, bsoi -> bso', z_c, props)
         else:
             # Fallback for non-uniform time steps (Matrix Exp per step)
             A_t = A.unsqueeze(1) * time_steps.view(1, S, 1, 1).to(device)

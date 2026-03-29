@@ -35,17 +35,18 @@ class TemporalRefiner(nn.Module):
         """
         B, T, D = z_seq.shape
         
-        # Concat real/imag -> (B, T, 2D)
-        x = torch.cat([z_seq.real, z_seq.imag], dim=2)
-        # Permute for Conv1d -> (B, 2D, T)
-        x = x.permute(0, 2, 1)
-        
-        correction = self.net(x)
-        
-        # Permute back -> (B, T, 2D)
-        correction = correction.permute(0, 2, 1)
-        
-        corr_real = correction[:, :, :D]
-        corr_imag = correction[:, :, D:]
-        
-        return z_seq + torch.complex(corr_real, corr_imag)
+        with torch.amp.autocast('cuda', enabled=False):
+            # Concat real/imag -> (B, T, 2D)
+            x = torch.cat([z_seq.real, z_seq.imag], dim=2)
+            # Permute for Conv1d -> (B, 2D, T)
+            x = x.permute(0, 2, 1)
+            
+            correction = self.net(x)
+            
+            # Permute back -> (B, T, 2D)
+            correction = correction.permute(0, 2, 1)
+            
+            corr_real = correction[:, :, :D]
+            corr_imag = correction[:, :, D:]
+            
+            return z_seq + torch.complex(corr_real, corr_imag)

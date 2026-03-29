@@ -1,6 +1,30 @@
 import torch
 import torch.nn as nn
 
+class ResidualUpBlock(nn.Module):
+    def __init__(self, in_c, out_c, norm_type=None):
+        super().__init__()
+        self.up = nn.ConvTranspose2d(in_c, out_c, kernel_size=3, stride=2, padding=1, output_padding=1)
+        self.norm1 = nn.GroupNorm(min(16, max(1, out_c // 4)), out_c) if norm_type == 'group' else nn.Identity()
+        self.act1 = nn.GELU()
+        
+        self.conv2 = nn.Conv2d(out_c, out_c, kernel_size=3, padding=1)
+        self.norm2 = nn.GroupNorm(min(16, max(1, out_c // 4)), out_c) if norm_type == 'group' else nn.Identity()
+        self.act2 = nn.GELU()
+        
+        print(f"  [Decoder] Provisioning learned skip-connection for upsampling (in: {in_c}, out: {out_c}, stride: 2)")
+        skip_layers = [nn.ConvTranspose2d(in_c, out_c, kernel_size=3, stride=2, padding=1, output_padding=1)]
+
+        if norm_type == 'group':
+            skip_layers.append(nn.GroupNorm(min(16, max(1, out_c // 4)), out_c))
+        self.skip = nn.Sequential(*skip_layers)
+            
+    def forward(self, x):
+        res = self.skip(x)
+        out = self.act1(self.norm1(self.up(x)))
+        out = self.norm2(self.conv2(out))
+        return self.act2(out + res)
+
 class SpectralDecoder(nn.Module):
     """
     Decodes the complex latent space back into the physical field domain.
@@ -12,7 +36,6 @@ class SpectralDecoder(nn.Module):
         super().__init__()
         self.width = width
         self.initial_size = initial_size
-        self.use_residual = use_residual
         
         # In base NIGO, bottleneck is 4x width
         self.fc = nn.Linear(latent_dim * 2, width*4 * initial_size * initial_size)
@@ -21,19 +44,19 @@ class SpectralDecoder(nn.Module):
         curr_width = width * 4
         
         for i in range(num_layers):
-            # Mirror the encoder's width doubling
             in_w = curr_width
-            # Decrease width as we go back to physical space
             out_w = curr_width // 2 if (num_layers - i) <= 2 else curr_width
-            # Ensure it doesn't go below base width
             out_w = max(width, out_w)
             
-            up = [nn.ConvTranspose2d(in_w, out_w, 3, stride=2, padding=1, output_padding=1)]
-            if norm_type == 'group':
-                up.append(nn.GroupNorm(min(16, out_w // 4), out_w))
-            up.append(nn.GELU())
-            
-            self.ups.append(nn.Sequential(*up))
+            if use_residual:
+                self.ups.append(ResidualUpBlock(in_w, out_w, norm_type=norm_type))
+            else:
+                up = [nn.ConvTranspose2d(in_w, out_w, 3, stride=2, padding=1, output_padding=1)]
+                if norm_type == 'group':
+                    up.append(nn.GroupNorm(min(16, max(1, out_w // 4)), out_w))
+                up.append(nn.GELU())
+                self.ups.append(nn.Sequential(*up))
+                
             curr_width = out_w
             
         self.conv_final = nn.Conv2d(curr_width, out_channels, 3, padding=1)
@@ -44,15 +67,16 @@ class SpectralDecoder(nn.Module):
         Returns: (B, seq_len, C, H, W)
         """
         B, S, D = z.shape
-        z_flat = z.reshape(B*S, D)
-        
-        x = torch.cat([z_flat.real, z_flat.imag], dim=1)
-        x = self.fc(x)
-        x = x.view(-1, self.width*4, self.initial_size, self.initial_size)
-        
-        for up_block in self.ups:
-            x = up_block(x)
+        with torch.amp.autocast('cuda', enabled=False):
+            z_flat = z.reshape(B*S, D)
             
-        out = self.conv_final(x)
-        _, C, H, W = out.shape
-        return out.view(B, S, C, H, W)
+            x = torch.cat([z_flat.real, z_flat.imag], dim=1)
+            x = self.fc(x)
+            x = x.view(-1, self.width*4, self.initial_size, self.initial_size)
+            
+            for up_block in self.ups:
+                x = up_block(x)
+                
+            out = self.conv_final(x)
+            _, C, H, W = out.shape
+            return out.view(B, S, C, H, W)
