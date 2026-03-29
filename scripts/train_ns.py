@@ -22,6 +22,7 @@ from tqdm import tqdm
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from turbo_nigo.models.turbo_nigo import GlobalTurboNIGO
+from turbo_nigo.core.losses import CompositeLoss
 
 # --- Enterprise Logging & Management ---
 
@@ -105,20 +106,29 @@ class PreloadedNSDataset(Dataset):
         seq = self.velocity[n, t : t + self.seq_len + 1]
         return seq[0], seq[1:], self.cond_vecs[n]
 
-def train_one_epoch(model, loader, optimizer, scaler, device, use_amp):
+def train_one_epoch(model, loader, optimizer, scaler, device, use_amp, epoch, accumulation_steps=4):
     model.train()
     total_loss, count = 0.0, 0
     pbar = tqdm(loader, desc="Training")
-    criterion = nn.MSELoss()
-    accumulation_steps = 4
+    
+    # --- Curriculum Learning Schedule ---
+    # Epochs <= 20: Macroscopic Pixel Matching (MSE + Relative L2)
+    # Epochs > 20: Physics Fine-tuning (MSE + Relative L2 + Incompressibility + Smoothness)
+    if epoch <= 20:
+        loss_config = {"relative_l2_weight": 1.0}
+    else:
+        loss_config = {"relative_l2_weight": 1.0, "divergence_weight": 0.1, "h1_weight": 0.1}
+        
+    criterion = CompositeLoss(loss_config).to(device)
     
     for i, (x, y, cond) in enumerate(pbar):
-        x, y, cond = x.to(device), y.to(device), cond.to(device)
-        time_steps = torch.linspace(0, 1.0, y.shape[1]).to(device)
+        x, y, cond = x.to(device, non_blocking=True), y.to(device, non_blocking=True), cond.to(device, non_blocking=True)
+        time_steps = torch.linspace(0, 1.0, y.shape[1], device=device)
         
         with torch.amp.autocast('cuda', enabled=use_amp):
-            u_pred, _, _, _, _, _ = model(x, time_steps, cond)
-            loss = criterion(u_pred, y) / accumulation_steps
+            u_pred, _, k_coeffs, r_coeffs, _, _ = model(x, time_steps, cond)
+            loss, _ = criterion(u_pred, y, k_coeffs, r_coeffs)
+            loss = loss / accumulation_steps
         
         if use_amp:
             scaler.scale(loss).backward()
@@ -147,14 +157,18 @@ def train_one_epoch(model, loader, optimizer, scaler, device, use_amp):
 def validate(model, loader, device):
     model.eval()
     total_loss, count = 0.0, 0
-    criterion = nn.MSELoss()
+    
+    # Validation uses strictly the physics-aware loss for fair tracking
+    loss_config = {"relative_l2_weight": 1.0, "divergence_weight": 0.1, "h1_weight": 0.1}
+    criterion = CompositeLoss(loss_config).to(device)
+    
     with torch.no_grad():
         for x, y, cond in loader:
-            x, y, cond = x.to(device), y.to(device), cond.to(device)
-            time_steps = torch.linspace(0, 1.0, y.shape[1]).to(device)
+            x, y, cond = x.to(device, non_blocking=True), y.to(device, non_blocking=True), cond.to(device, non_blocking=True)
+            time_steps = torch.linspace(0, 1.0, y.shape[1], device=device)
             with torch.amp.autocast('cuda', enabled=False):
-                u_pred, _, _, _, _, _ = model(x, time_steps, cond)
-                loss = criterion(u_pred, y)
+                u_pred, _, k_coeffs, r_coeffs, _, _ = model(x, time_steps, cond)
+                loss, _ = criterion(u_pred, y, k_coeffs, r_coeffs)
             total_loss += loss.item() * x.size(0)
             count += x.size(0)
     return total_loss / max(1, count)
@@ -165,7 +179,8 @@ def main():
     parser.add_argument('--output_dir', type=str, default='./results/ns_modular')
     parser.add_argument('--resume_from', type=str, default=None)
     parser.add_argument('--epochs', type=int, default=300)
-    parser.add_argument('--batch_size', type=int, default=16)
+    parser.add_argument('--batch_size', type=int, default=2) # Default overridden for micro-batching
+    parser.add_argument('--update_steps', type=int, default=16) # Effectively achieving batch=32
     parser.add_argument('--lr', type=float, default=2e-4)
     parser.add_argument('--seq_len', type=int, default=20)
     args = parser.parse_args()
@@ -181,13 +196,29 @@ def main():
         torch.backends.cuda.matmul.allow_tf32 = True
         torch.backends.cudnn.allow_tf32 = True
 
+    # Performance specific configs matching the GPU micro-batching limits
+    micro_batch = args.batch_size
+    accumulations = max(1, args.update_steps // micro_batch)
+    history.log_text(f"Using micro-batching (bs={micro_batch}, accumulations={accumulations}) to prevent PCIe thrashing.")
+
     train_ds = PreloadedNSDataset(args.data_path, target_res=256, seq_len=args.seq_len, mode="train")
     val_ds = PreloadedNSDataset(args.data_path, target_res=256, seq_len=args.seq_len, mode="val")
-    train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=0, pin_memory=use_amp)
-    val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False, num_workers=0, pin_memory=use_amp)
+    train_loader = DataLoader(train_ds, batch_size=micro_batch, shuffle=True, num_workers=0, pin_memory=use_amp)
+    val_loader = DataLoader(val_ds, batch_size=micro_batch, shuffle=False, num_workers=0, pin_memory=use_amp)
 
     model = GlobalTurboNIGO(latent_dim=64, width=64, spatial_size=256, num_layers=3, use_residual=True, norm_type='group')
     model.to(device)
+    
+    # [OPTIMIZATION] PyTorch 2.0 Triton Compilation for massive speedup
+    if hasattr(torch, 'compile') and os.name != 'nt':
+        history.log_text("[*] Applying torch.compile for Triton kernel optimization...")
+        try:
+            model = torch.compile(model)
+        except Exception as e:
+            history.log_text("[!] torch.compile failed, falling back to eager mode.")
+    else:
+        history.log_text("[*] Bypassing torch.compile on Windows (Triton unsupported natively).")
+
     
     optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
     
@@ -212,7 +243,7 @@ def main():
 
     for epoch in range(start_epoch, args.epochs + 1):
         history.log_text(f"Epoch {epoch}/{args.epochs}")
-        train_loss = train_one_epoch(model, train_loader, optimizer, scaler, device, use_amp)
+        train_loss = train_one_epoch(model, train_loader, optimizer, scaler, device, use_amp, epoch, accumulations)
         val_loss = validate(model, val_loader, device)
         scheduler.step()
         
