@@ -121,7 +121,7 @@ def train_one_epoch(model, loader, optimizer, scaler, device, use_amp):
         S = y.shape[1]
         time_steps = torch.linspace(0, 1.0, S).to(device)
         
-        with autocast(enabled=use_amp):
+        with torch.amp.autocast('cuda', enabled=use_amp):
             u_pred, z_base, k_c, r_c, alpha, beta = model(x, time_steps, cond)
             # Normalize loss by accumulation steps
             loss = criterion(u_pred, y) / accumulation_steps
@@ -165,7 +165,7 @@ def validate(model, loader, device):
             S = y.shape[1]
             time_steps = torch.linspace(0, 1.0, S).to(device)
             
-            with autocast(enabled=False):
+            with torch.amp.autocast('cuda', enabled=False):
                 u_pred, _, _, _, _, _ = model(x, time_steps, cond)
                 loss = criterion(u_pred, y)
             
@@ -178,7 +178,7 @@ def save_checkpoint(path, epoch, model, optimizer, scaler, scheduler, best_loss)
         'epoch': epoch,
         'model_state': model.state_dict(),
         'optimizer_state': optimizer.state_dict(),
-        'scaler_state': scaler.scale.state_dict() if scaler else None,
+        'scaler_state': scaler.state_dict() if scaler else None,
         'scheduler_state': scheduler.state_dict() if scheduler else None,
         'best_val_loss': best_loss
     }, path)
@@ -223,7 +223,11 @@ def main():
                             num_workers=0, pin_memory=use_amp)
 
     print(f"Initializing GlobalTurboNIGO (High-Res Edition)...")
-    model = GlobalTurboNIGO(latent_dim=64, num_bases=8, cond_dim=4, width=64, spatial_size=256, in_channels=2)
+    model = GlobalTurboNIGO(
+        latent_dim=64, num_bases=8, cond_dim=4, 
+        width=64, spatial_size=256, in_channels=2,
+        num_layers=3, use_residual=True, norm_type='group'
+    )
     model.to(device)
     
     optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
