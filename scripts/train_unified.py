@@ -5,10 +5,7 @@ Supports all datasets (flow, ns_incom, burgers, ks, darcy) and all model
 variants (V1 base, V2 attention-physics) via a single config-driven interface.
 
 Usage:
-    python scripts/train_unified.py --config turbo_nigo/configs/burgers_config.yaml
-    python scripts/train_unified.py --config turbo_nigo/configs/ns_incom_config.yaml
     python scripts/train_unified.py --config turbo_nigo/configs/ks_config.yaml
-    python scripts/train_unified.py --config turbo_nigo/configs/darcy_config.yaml
     python scripts/train_unified.py --config turbo_nigo/configs/default_config.yaml
 
     # Override from CLI:
@@ -82,17 +79,11 @@ def create_dataloaders(config: dict):
 
     if dt == "flow":
         return _loaders_flow(config, loader_kwargs)
-    if dt == "ns_incom":
-        return _loaders_ns_incom(config, loader_kwargs)
-    if dt == "burgers":
-        return _loaders_burgers(config, loader_kwargs)
     if dt == "ks":
         return _loaders_ks(config, loader_kwargs)
-    if dt == "darcy":
-        return _loaders_darcy(config, loader_kwargs)
 
     raise ValueError(f"Unknown dataset_type '{dt}'. "
-                     f"Choose from: flow, ns_incom, burgers, ks, darcy")
+                     f"Choose from: flow, ks")
 
 
 # ------------------------------------------------------------------
@@ -120,63 +111,7 @@ def _loaders_flow(config, lkw):
     )
 
 
-# ------------------------------------------------------------------
-# NS incompressible 2D (H5)
-# ------------------------------------------------------------------
-def _loaders_ns_incom(config, lkw):
-    from turbo_nigo.data.h5_dataset import H5FlowDataset
 
-    common = dict(
-        h5_path=config["data_root"],
-        target_res=config.get("target_res", 64),
-        seq_len=config["seq_len"],
-        temporal_stride=config.get("temporal_stride", 20),
-        window_stride=config.get("window_stride", 5),
-        g_min=config.get("ns_g_min", -3.0),
-        g_max=config.get("ns_g_max", 3.0),
-    )
-
-    train_ds = H5FlowDataset(
-        **common, mode="train",
-        train_batches=config.get("train_batches", [0, 1, 2]),
-        val_batches=config.get("val_batches", [3]),
-    )
-    val_ds = H5FlowDataset(
-        **common, mode="val",
-        train_batches=config.get("train_batches", [0, 1, 2]),
-        val_batches=config.get("val_batches", [3]),
-    )
-
-    return (
-        DataLoader(train_ds, shuffle=True, **lkw),
-        DataLoader(val_ds, shuffle=False, **lkw),
-    )
-
-
-# ------------------------------------------------------------------
-# Burgers equation
-# ------------------------------------------------------------------
-def _loaders_burgers(config, lkw):
-    from turbo_nigo.data.burgers_dataset import BurgersDataset
-
-    common = dict(
-        data_path=config["data_root"],
-        seq_len=config["seq_len"],
-        target_spatial_res=config.get("target_spatial_res", 64),
-        train_split=config.get("train_split", 0.8),
-        viscosity=config.get("viscosity", 0.1),
-    )
-
-    train_ds = BurgersDataset(**common, mode="train")
-    val_ds = BurgersDataset(
-        **common, mode="val",
-        g_min=train_ds.g_min, g_max=train_ds.g_max,  # use train stats
-    )
-
-    return (
-        DataLoader(train_ds, shuffle=True, **lkw),
-        DataLoader(val_ds, shuffle=False, **lkw),
-    )
 
 
 # ------------------------------------------------------------------
@@ -209,29 +144,7 @@ def _loaders_ks(config, lkw):
     )
 
 
-# ------------------------------------------------------------------
-# Darcy flow
-# ------------------------------------------------------------------
-def _loaders_darcy(config, lkw):
-    from turbo_nigo.data.darcy_dataset import DarcyFlowDataset
 
-    common = dict(
-        data_path=config["data_root"],
-        seq_len=config["seq_len"],  # must be 1
-        target_res=config.get("target_res", 64),
-        train_split=config.get("train_split", 0.8),
-    )
-
-    train_ds = DarcyFlowDataset(**common, mode="train")
-    val_ds = DarcyFlowDataset(
-        **common, mode="val",
-        g_min=train_ds.g_min, g_max=train_ds.g_max,
-    )
-
-    return (
-        DataLoader(train_ds, shuffle=True, **lkw),
-        DataLoader(val_ds, shuffle=False, **lkw),
-    )
 
 
 # ======================================================================

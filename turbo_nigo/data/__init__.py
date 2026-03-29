@@ -10,17 +10,7 @@ except ImportError:
     pass
 
 try:
-    from .burgers_dataset import BurgersDataset
-except ImportError:
-    pass
-
-try:
     from .ks_dataset import KSDataset
-except ImportError:
-    pass
-
-try:
-    from .darcy_dataset import DarcyFlowDataset
 except ImportError:
     pass
 

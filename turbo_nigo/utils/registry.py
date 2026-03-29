@@ -41,25 +41,12 @@ def _register_optional_datasets():
     try:
         from turbo_nigo.data.h5_dataset import H5FlowDataset
         Registry.register_dataset("h5_flow", H5FlowDataset)
-        Registry.register_dataset("ns_incom", H5FlowDataset)
-    except Exception:
-        pass
-
-    try:
-        from turbo_nigo.data.burgers_dataset import BurgersDataset
-        Registry.register_dataset("burgers", BurgersDataset)
     except Exception:
         pass
 
     try:
         from turbo_nigo.data.ks_dataset import KSDataset
         Registry.register_dataset("ks", KSDataset)
-    except Exception:
-        pass
-
-    try:
-        from turbo_nigo.data.darcy_dataset import DarcyFlowDataset
-        Registry.register_dataset("darcy", DarcyFlowDataset)
     except Exception:
         pass
 
