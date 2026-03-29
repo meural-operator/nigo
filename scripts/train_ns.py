@@ -113,36 +113,39 @@ def train_one_epoch(model, loader, optimizer, scaler, device, use_amp):
     pbar = tqdm(loader, desc="Training")
     criterion = nn.MSELoss()
     
-    for x, y, cond in pbar:
+    accumulation_steps = 4
+    
+    for i, (x, y, cond) in enumerate(pbar):
         x, y, cond = x.to(device), y.to(device), cond.to(device)
         
         S = y.shape[1]
         time_steps = torch.linspace(0, 1.0, S).to(device)
         
-        optimizer.zero_grad(set_to_none=True)
-        
         with autocast(enabled=use_amp):
             u_pred, z_base, k_c, r_c, alpha, beta = model(x, time_steps, cond)
-            loss = criterion(u_pred, y)
+            # Normalize loss by accumulation steps
+            loss = criterion(u_pred, y) / accumulation_steps
         
         if use_amp:
             scaler.scale(loss).backward()
-            
-            # Proper fix: Unscale before clipping
-            scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-            
-            scaler.step(optimizer)
-            scaler.update()
         else:
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-            optimizer.step()
+            
+        if (i + 1) % accumulation_steps == 0:
+            if use_amp:
+                scaler.unscale_(optimizer)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+                optimizer.step()
+            
+            optimizer.zero_grad(set_to_none=True)
         
-        # Proper fix: Skip logging if loss is NaN to avoid corrupted metrics
         if not torch.isnan(loss):
-            total_loss += loss.item() * x.size(0)
-            pbar.set_postfix({"loss": loss.item()})
+            total_loss += (loss.item() * accumulation_steps) * x.size(0)
+            pbar.set_postfix({"loss": loss.item() * accumulation_steps})
         else:
             print("  [WARN] NaN loss detected in batch, skipping record.")
         
@@ -185,8 +188,8 @@ def main():
     parser.add_argument('--data_path', type=str, default='./datasets/ns_incom_inhom_2d_512-0.h5')
     parser.add_argument('--output_dir', type=str, default='./results/ns_run')
     parser.add_argument('--resume_from', type=str, default=None)
-    parser.add_argument('--epochs', type=int, default=100)
-    parser.add_argument('--batch_size', type=int, default=64)
+    parser.add_argument('--epochs', type=int, default=300)
+    parser.add_argument('--batch_size', type=int, default=16)
     parser.add_argument('--lr', type=float, default=2e-4)
     parser.add_argument('--seq_len', type=int, default=20)
     parser.add_argument('--workers', type=int, default=4)
