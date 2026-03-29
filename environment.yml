@@ -9,8 +9,9 @@ dependencies:
   - vc14_runtime=14.44.35208
   - vs2015_runtime=14.44.35208
   - pip:
-      - torch==2.10.0+cu130 --extra-index-url https://download.pytorch.org/whl/cu130
-      - torchvision==0.25.0+cu130 --extra-index-url https://download.pytorch.org/whl/cu130
+      - --index-url https://download.pytorch.org/whl/cu130
+      - torch==2.11.0+cu130
+      - torchvision==0.26.0+cu130
       - numpy==2.3.5
       - scipy==1.17.0
       - h5py==3.15.1
