@@ -273,14 +273,15 @@ class UnifiedTrainer:
         ):
             self.scheduler.load_state_dict(ckpt["scheduler_state_dict"])
 
-        for key, setter in [
-            ("rng_torch", torch.random.set_rng_state),
-            ("rng_numpy", lambda s: np.random.set_state(s)),
-        ]:
-            if key in ckpt:
-                setter(ckpt[key])
+        if "rng_torch" in ckpt:
+            # map_location='cuda' moves everything to GPU, but set_rng_state strictly requires CPU ByteTensor
+            torch.random.set_rng_state(ckpt["rng_torch"].cpu())
+            
+        if "rng_numpy" in ckpt:
+            np.random.set_state(ckpt["rng_numpy"])
+            
         if "rng_cuda" in ckpt and torch.cuda.is_available():
-            torch.cuda.set_rng_state(ckpt["rng_cuda"])
+            torch.cuda.set_rng_state(ckpt["rng_cuda"].cpu())
 
         print(
             f"[Resume] Epoch {self.start_epoch} | "
