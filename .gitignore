@@ -21,9 +21,14 @@ datasets/
 # --- Results & Checkpoints ---
 results/
 results_ks/
+results_sw/
 figures/
 *.pth
 *.pt
+
+# --- Analysis & Exports ---
+Shallow_Water_Analysis_Report.pdf
+export_pdf.py
 
 # --- Environment ---
 .env

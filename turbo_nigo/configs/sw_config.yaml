@@ -1,0 +1,72 @@
+# =============================================================================
+# TurboNIGO Configuration — Shallow Water (SW) Dataset
+# Optimized for high-end workstation (RTX 4000 Ada 20GB, 128GB RAM)
+# =============================================================================
+
+experiment_name: "Turbo_NIGO_SW"
+dataset_type: "sw"
+model_type: "v1"
+physics_net_type: "distribution"
+
+# --- PATHS (Modify these for your target system) ---
+data_root: "datasets/2D_rdb_NA_NA.h5"
+results_dir: "./results_sw"
+
+# --- Training Hyperparameters ---
+epochs: 100
+batch_size: 32
+learning_rate: 0.0005
+seq_len: 20
+dt: 0.1
+
+# --- Model Architecture ---
+# SW is an actual 2D dataset of size 128x128
+latent_dim: 64
+width: 32
+num_bases: 8
+cond_dim: 4
+in_channels: 1
+spatial_size: 128
+
+# --- Physics and Prior Weights ---
+physics_prior_weight: 0.001
+spectral_loss_weight: 0.1
+relative_l2_weight: 0.0
+
+# --- LR Scheduler ---
+scheduler: "cosine"
+warmup_epochs: 5
+min_lr: 1.0e-6
+plateau_factor: 0.5
+plateau_patience: 10
+step_size: 50
+step_gamma: 0.5
+
+# --- Training Robustness ---
+grad_clip_norm: 1.0
+early_stopping_patience: 0
+
+# --- Logging ---
+use_tensorboard: true
+log_grad_norm: true
+
+# --- Checkpointing & Resumability ---
+checkpoint_freq: 20
+resume_from: null
+
+# --- System Settings ---
+seed: 42
+num_workers: 0  # 0 is best for in-memory datasets on Windows to avoid IPC overhead
+use_amp: false
+device: "cuda"
+
+# --- Compute Optimizations ---
+compile: false
+tf32: true
+cudnn_benchmark: true
+
+# --- Shallow Water Dataset-Specific ---
+sw_temporal_stride: 1         # Use all 101 steps per trajectory (resulting in sliding windows of seq=20)
+sw_train_cases: 900           # 900 trajectories for training
+sw_val_cases: 100           # 100 trajectories for validation
+sw_spatial_size: 128          # No spatial downsampling required

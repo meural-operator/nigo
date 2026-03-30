@@ -111,6 +111,7 @@ class SobolevH1Loss(nn.Module):
 class CompositeLoss(nn.Module):
     """
     Builds a composite loss from config flags.
+    Supports Dual Curriculum Learning (Temporal Unrolling + Loss Finetuning).
     """
     def __init__(self, config: dict):
         super().__init__()
@@ -127,31 +128,56 @@ class CompositeLoss(nn.Module):
 
         hw = config.get("h1_weight", 0.0)
         self.h1 = SobolevH1Loss(weight=hw) if hw > 0 else None
+        
+        self.curriculum = config.get("curriculum_learning", False)
+        self.seq_len = config.get("seq_len", 20)
 
-    def forward(self, u_pred, u_target, k_coeffs, r_coeffs):
+    def forward(self, u_pred, u_target, k_coeffs, r_coeffs, epoch: int = None, max_epochs: int = None):
         losses = {}
 
-        mse = F.mse_loss(u_pred, u_target)
+        # ---------------- Curriculum Logic ----------------
+        u_p = u_pred
+        u_t = u_target
+        h1_active = True
+
+        if self.curriculum and epoch is not None and max_epochs is not None:
+            phase1_end = max_epochs // 2
+            
+            # Temporal Sequence Unrolling
+            if epoch <= phase1_end:
+                t_limit = max(1, int(self.seq_len * (epoch / phase1_end)))
+                h1_active = False # Pure MSE Phase
+            else:
+                t_limit = self.seq_len
+                h1_active = True  # Sobolev Finetuning Phase
+                
+            if u_pred.dim() >= 2: # Assuming (B, T, ...)
+                t_max_actual = min(u_pred.shape[1], t_limit)
+                u_p = u_pred[:, :t_max_actual]
+                u_t = u_target[:, :t_max_actual]
+        # --------------------------------------------------
+
+        mse = F.mse_loss(u_p, u_t)
         losses["mse"] = mse.item()
         total = mse
 
         if self.spectral is not None:
-            spec = self.spectral(u_pred, u_target)
+            spec = self.spectral(u_p, u_t)
             losses["spectral"] = spec.item()
             total = total + spec
 
         if self.relative is not None:
-            rel = self.relative(u_pred, u_target)
+            rel = self.relative(u_p, u_t)
             losses["relative_l2"] = rel.item()
             total = total + rel
 
         if self.divergence is not None:
-            div = self.divergence(u_pred)
+            div = self.divergence(u_p)
             losses["divergence"] = div.item()
             total = total + div
 
-        if self.h1 is not None:
-            h1 = self.h1(u_pred, u_target)
+        if self.h1 is not None and h1_active:
+            h1 = self.h1(u_p, u_t)
             losses["h1_smoothness"] = h1.item()
             total = total + h1
 

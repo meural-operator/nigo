@@ -81,9 +81,11 @@ def create_dataloaders(config: dict):
         return _loaders_flow(config, loader_kwargs)
     if dt == "ks":
         return _loaders_ks(config, loader_kwargs)
+    if dt == "sw":
+        return _loaders_sw(config, loader_kwargs)
 
     raise ValueError(f"Unknown dataset_type '{dt}'. "
-                     f"Choose from: flow, ks")
+                     f"Choose from: flow, ks, sw")
 
 
 # ------------------------------------------------------------------
@@ -146,6 +148,35 @@ def _loaders_ks(config, lkw):
 
 
 
+
+# ------------------------------------------------------------------
+# Shallow Water (2D)
+# ------------------------------------------------------------------
+def _loaders_sw(config, lkw):
+    from turbo_nigo.data.sw_dataset import ShallowWaterDataset
+
+    common = dict(
+        h5_path=config["data_root"],
+        seq_len=config["seq_len"],
+        temporal_stride=config.get("sw_temporal_stride", 1),
+        spatial_size=config.get("sw_spatial_size", 128),
+        cond_dim=config.get("cond_dim", 4),
+    )
+
+    train_ds = ShallowWaterDataset(
+        **common, mode="train",
+        max_trajectories=config.get("sw_train_cases", 900),
+    )
+    val_ds = ShallowWaterDataset(
+        **common, mode="val",
+        max_trajectories=config.get("sw_val_cases", 100),
+        g_min=train_ds.g_min, g_max=train_ds.g_max,
+    )
+
+    return (
+        DataLoader(train_ds, shuffle=True, **lkw),
+        DataLoader(val_ds, shuffle=False, **lkw),
+    )
 
 # ======================================================================
 # Results directory

@@ -350,7 +350,10 @@ class UnifiedTrainer:
                 u_pred, _, k_c, r_c, alpha, beta = self.model(
                     u0, self.time_steps, cond
                 )
-                loss, ld = self.criterion(u_pred, u_seq_gt, k_c, r_c)
+                loss, ld = self.criterion(
+                    u_pred, u_seq_gt, k_c, r_c, 
+                    epoch=epoch, max_epochs=self.config.get("epochs")
+                )
 
             self.scaler.scale(loss).backward()
 
@@ -418,7 +421,12 @@ class UnifiedTrainer:
                 u_pred, _, k_c, r_c, alpha, beta = self.model(
                     u0, self.time_steps, cond
                 )
-                _, ld = self.criterion(u_pred, u_seq_gt, k_c, r_c)
+                _, ld = self.criterion(
+                    u_pred, u_seq_gt, k_c, r_c,
+                    # We pass max_epochs so validate uses the full horizon or matches train horizon
+                    epoch=self.config.get("epochs") if not self.config.get("curriculum_eval") else None, 
+                    max_epochs=self.config.get("epochs")
+                )
 
             accum["loss"] += ld["total"]
             accum["mse"] += ld["mse"]
