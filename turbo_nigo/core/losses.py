@@ -71,23 +71,42 @@ class DivergenceLoss(nn.Module):
         return self.weight * torch.mean(div**2)
 
 class SobolevH1Loss(nn.Module):
-    """Penalizes high-frequency numerical checkerboarding."""
+    """
+    First-order Sobolev (H¹) semi-norm penalty on spatial gradients.
+
+    Computes MSE on finite-difference spatial derivatives:
+        L_H1 = MSE(∂pred/∂x, ∂gt/∂x)  [+ MSE(∂pred/∂y, ∂gt/∂y) for 2D]
+
+    Automatically detects spatial dimensionality:
+        - 1D fields: tensors with ndim ≤ 4 after any (B,T) collapse → (*, C, X)
+        - 2D fields: tensors with ndim = 5 or ≥ 3 spatial axes → (*, C, H, W)
+
+    This naturally penalizes high-frequency artifacts because finite differences
+    amplify high-wavenumber modes by factor ~k, equivalent to a k²-weighted
+    spectral penalty.
+    """
     def __init__(self, weight: float = 1.0):
         super().__init__()
         self.weight = weight
 
     def forward(self, pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        # First order difference along x
+        # Determine if input is 1D or 2D spatial
+        # 2D: (B, T, C, H, W) [5D] or (B, C, H, W) [4D with C small]
+        # 1D: (B, T, C, X) [4D] or (B, C, X) [3D]
+        is_2d = pred.dim() >= 5 or (pred.dim() == 4 and target.dim() >= 5)
+
+        # Gradient along last spatial axis (x for 1D, W for 2D)
         grad_pred_x = pred[..., 1:] - pred[..., :-1]
         grad_tgt_x = target[..., 1:] - target[..., :-1]
-        loss_x = F.mse_loss(grad_pred_x, grad_tgt_x)
-        
-        # First order difference along y
-        grad_pred_y = pred[..., 1:, :] - pred[..., :-1, :]
-        grad_tgt_y = target[..., 1:, :] - target[..., :-1, :]
-        loss_y = F.mse_loss(grad_pred_y, grad_tgt_y)
-        
-        return self.weight * (loss_x + loss_y)
+        loss = F.mse_loss(grad_pred_x, grad_tgt_x)
+
+        if is_2d:
+            # Gradient along second-to-last spatial axis (H for 2D)
+            grad_pred_y = pred[..., 1:, :] - pred[..., :-1, :]
+            grad_tgt_y = target[..., 1:, :] - target[..., :-1, :]
+            loss = loss + F.mse_loss(grad_pred_y, grad_tgt_y)
+
+        return self.weight * loss
 
 class CompositeLoss(nn.Module):
     """
