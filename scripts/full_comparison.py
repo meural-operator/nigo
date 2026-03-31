@@ -17,23 +17,34 @@ from dataclasses import dataclass, field
 from typing import Tuple
 
 # ── Paths ──────────────────────────────────────────────────────────────
-PROJECT_ROOT = Path(__file__).resolve().parent
-PDEBENCH_ROOT = PROJECT_ROOT / "PDEBench"
+# Resolve the repository root (nigo) and workspace root (parent of nigo)
+REPO_ROOT = Path(__file__).resolve().parent.parent
+WORKSPACE_ROOT = REPO_ROOT.parent
+
+# Baseline Model Repositories (Assumed to be placed next to nigo)
+PDEBENCH_ROOT = WORKSPACE_ROOT / "PDEBench"
 sys.path.insert(0, str(PDEBENCH_ROOT))
 
-from pdebench.models.fno.fno import FNO1d
-from pdebench.models.unet.unet import UNet1d
+try:
+    from pdebench.models.fno.fno import FNO1d
+    from pdebench.models.unet.unet import UNet1d
+except ImportError:
+    print(f"Warning: Could not import from PDEBench at {PDEBENCH_ROOT}")
+    print("Please ensure PDEBench and models are placed parallel to the nigo repository.")
 
-TURBO_DIR = PROJECT_ROOT / "RUN_BURGERS_1D"
+TURBO_DIR = WORKSPACE_ROOT / "RUN_BURGERS_1D"
 sys.path.insert(0, str(TURBO_DIR / "src_mirror"))
-from models.turbo_nigo_1d import GlobalTurboNIGO_1D
+try:
+    from models.turbo_nigo_1d import GlobalTurboNIGO_1D
+except ImportError:
+    print(f"Warning: Could not import TurboNIGO_1D from {TURBO_DIR}")
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
-OUTPUT_DIR = PROJECT_ROOT / "full_comparison_results"
+OUTPUT_DIR = REPO_ROOT / "full_comparison_results"
 OUTPUT_DIR.mkdir(exist_ok=True)
-MODELS_DIR = PROJECT_ROOT / "models"
+MODELS_DIR = WORKSPACE_ROOT / "models"
 
 # ── Constants ──────────────────────────────────────────────────────────
 NU = 0.1
