@@ -5,7 +5,7 @@ import yaml
 
 # Inject Conda DLL path to resolve WinError 127 for PyTorch 2.11.0
 if os.name == 'nt':
-    os.add_dll_directory(r"C:\Users\DIAT\miniconda3\envs\turbo_nigo\Library\bin")
+    os.add_dll_directory(r"PATH TO LIBRARY BIN")
 
 # Add root directory to python path for imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
