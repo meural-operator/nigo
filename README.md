@@ -112,6 +112,10 @@ The full ablation suite isolates the specific mathematical operations within the
 | **No Refiner (Abl 4)** | Skip multi-scale temporal convs | $z_{refined} = z_{base}$ |
 | **Unscaled (Abl 5)** | Force scalars perfectly to 1 | $A = (K-K^\top) - R^\top R$ |
 
+<p align="center">
+  <img src="components_ablation.png" width="90%">
+</p>
+
 ---
 
 ## Repository Structure
