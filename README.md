@@ -35,25 +35,25 @@ This framework is benchmarked on challenging physics systems demonstrating disti
 
 #### Boundary Condition (bc) — CFDBench 2D Navier-Stokes
 
-| Spatiotemporal Evolution | Vorticity Field | Spectral Analysis |
+| Raw Sample Field | Energy Distribution | Spectral Analysis |
 |:---:|:---:|:---:|
-| <img src="figures/bc/bc_spatiotemporal_evolution.png" width="300" alt="BC Spatiotemporal Evolution"/> | <img src="results/dataset_visualizations/bc/bc_vorticity.png" width="300" alt="BC Vorticity Field"/> | <img src="figures/bc/bc_spectral_analysis.png" width="300" alt="BC Spectral Analysis"/> |
+| <img src="results/dataset_visualizations/bc/bc_sample.png" width="300" alt="BC Sample"/> | <img src="results/dataset_visualizations/bc/bc_energy_dist.png" width="300" alt="BC Energy Distribution"/> | <img src="results/dataset_visualizations/bc/bc_spectrum.png" width="300" alt="BC Spectrum"/> |
 
 #### Kuramoto-Sivashinsky (KS) — Spatiotemporal Chaos
 
-| Spatiotemporal Heatmap | Hovmöller Diagram | Averaged Spectrum |
+| Raw Sample Field | Energy Distribution | Spectral Analysis |
 |:---:|:---:|:---:|
-| <img src="figures/ks/ks_spatiotemporal_heatmap.png" width="300" alt="KS Spatiotemporal Heatmap"/> | <img src="results/dataset_visualizations/KS_dataset/ks_hovmoller.png" width="300" alt="KS Hovmöller Diagram"/> | <img src="results/dataset_visualizations/KS_dataset/ks_avg_spectrum.png" width="300" alt="KS Averaged Spectrum"/> |
+| <img src="results/dataset_visualizations/KS_dataset/ks_sample.png" width="300" alt="KS Sample"/> | <img src="results/dataset_visualizations/KS_dataset/ks_energy_dist.png" width="300" alt="KS Energy Distribution"/> | <img src="results/dataset_visualizations/KS_dataset/ks_spectrum.png" width="300" alt="KS Spectrum"/> |
 
 #### Burgers' Equation — 1D Viscous Shock Propagation
 
-| Evolution Grid | Hovmöller Diagram | Averaged Spectrum |
+| Raw Sample Field | Energy Distribution | Spectral Analysis |
 |:---:|:---:|:---:|
-| <img src="results/dataset_visualizations/Burgers/burgers_evolution_grid.png" width="300" alt="Burgers Evolution Grid"/> | <img src="results/dataset_visualizations/Burgers/burgers_hovmoller.png" width="300" alt="Burgers Hovmöller Diagram"/> | <img src="results/dataset_visualizations/Burgers/burgers_avg_spectrum.png" width="300" alt="Burgers Averaged Spectrum"/> |
+| <img src="results/dataset_visualizations/Burgers/burgers_sample.png" width="300" alt="Burgers Sample"/> | <img src="results/dataset_visualizations/Burgers/burgers_energy_dist.png" width="300" alt="Burgers Energy Distribution"/> | <img src="results/dataset_visualizations/Burgers/burgers_spectrum.png" width="300" alt="Burgers Spectrum"/> |
 
 #### Darcy Flow — Elliptic Steady-State PDE
 
-| Primary Sample Field | Energy Distribution | Attractor Spectrum |
+| Raw Sample Field | Energy Distribution | Spectral Analysis |
 |:---:|:---:|:---:|
 | <img src="results/dataset_visualizations/DarcyFlow/darcy_sample.png" width="300" alt="Darcy Sample"/> | <img src="results/dataset_visualizations/DarcyFlow/darcy_energy_dist.png" width="300" alt="Darcy Energy Distribution"/> | <img src="results/dataset_visualizations/DarcyFlow/darcy_spectrum.png" width="300" alt="Darcy Spectrum"/> |
 
