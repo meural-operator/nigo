@@ -29,29 +29,35 @@ This framework is benchmarked on challenging physics systems demonstrating disti
 
 ### Sample Visualizations
 
+<details>
+<summary><b>Click here to expand and explore dataset sample visualizations</b></summary>
+<br>
+
 #### Boundary Condition (bc) — CFDBench 2D Navier-Stokes
 
-| BC Spatiotemporal Evolution | BC Spectral Analysis | BC Evolution Grid | BC Averaged Spectrum | BC Energy Distribution | BC IC Manifold | BC Vorticity | BC Sample | BC Spectrum |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| <img src="figures/bc/bc_spatiotemporal_evolution.png" width="500" alt="BC Spatiotemporal Evolution"/> | <img src="figures/bc/bc_spectral_analysis.png" width="500" alt="BC Spectral Analysis"/> | <img src="results/dataset_visualizations/bc/bc_evolution_grid.png" width="500" alt="BC Evolution Grid"/> | <img src="results/dataset_visualizations/bc/bc_avg_spectrum.png" width="500" alt="BC Averaged Spectrum"/> | <img src="results/dataset_visualizations/bc/bc_energy_dist.png" width="500" alt="BC Energy Distribution"/> | <img src="results/dataset_visualizations/bc/bc_ic_manifold.png" width="500" alt="BC IC Manifold"/> | <img src="results/dataset_visualizations/bc/bc_vorticity.png" width="500" alt="BC Vorticity"/> | <img src="results/dataset_visualizations/bc/bc_sample.png" width="500" alt="BC Sample"/> | <img src="results/dataset_visualizations/bc/bc_spectrum.png" width="500" alt="BC Spectrum"/> |
+| Spatiotemporal Evolution | Vorticity Field | Spectral Analysis |
+|:---:|:---:|:---:|
+| <img src="figures/bc/bc_spatiotemporal_evolution.png" width="300" alt="BC Spatiotemporal Evolution"/> | <img src="results/dataset_visualizations/bc/bc_vorticity.png" width="300" alt="BC Vorticity Field"/> | <img src="figures/bc/bc_spectral_analysis.png" width="300" alt="BC Spectral Analysis"/> |
 
 #### Kuramoto-Sivashinsky (KS) — Spatiotemporal Chaos
 
-| KS Amplitude Distribution | KS Spatiotemporal Heatmap | KS Temporal Autocorrelation | KS Multi-Trajectory | KS Evolution Grid | KS Hovmöller Diagram | KS Averaged Spectrum | KS Energy Distribution | KS IC Manifold | KS Sample | KS Spectrum |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| <img src="figures/ks/ks_amplitude_distribution.png" width="500" alt="KS Amplitude Distribution"/> | <img src="figures/ks/ks_spatiotemporal_heatmap.png" width="500" alt="KS Spatiotemporal Heatmap"/> | <img src="figures/ks/ks_temporal_autocorrelation.png" width="500" alt="KS Temporal Autocorrelation"/> | <img src="figures/ks/ks_multi_trajectory.png" width="500" alt="KS Multi-Trajectory"/> | <img src="results/dataset_visualizations/KS_dataset/ks_evolution_grid.png" width="500" alt="KS Evolution Grid"/> | <img src="results/dataset_visualizations/KS_dataset/ks_hovmoller.png" width="500" alt="KS Hovmöller Diagram"/> | <img src="results/dataset_visualizations/KS_dataset/ks_avg_spectrum.png" width="500" alt="KS Averaged Spectrum"/> | <img src="results/dataset_visualizations/KS_dataset/ks_energy_dist.png" width="500" alt="KS Energy Distribution"/> | <img src="results/dataset_visualizations/KS_dataset/ks_ic_manifold.png" width="500" alt="KS IC Manifold"/> | <img src="results/dataset_visualizations/KS_dataset/ks_sample.png" width="500" alt="KS Sample"/> | <img src="results/dataset_visualizations/KS_dataset/ks_spectrum.png" width="500" alt="KS Spectrum"/> |
+| Spatiotemporal Heatmap | Hovmöller Diagram | Averaged Spectrum |
+|:---:|:---:|:---:|
+| <img src="figures/ks/ks_spatiotemporal_heatmap.png" width="300" alt="KS Spatiotemporal Heatmap"/> | <img src="results/dataset_visualizations/KS_dataset/ks_hovmoller.png" width="300" alt="KS Hovmöller Diagram"/> | <img src="results/dataset_visualizations/KS_dataset/ks_avg_spectrum.png" width="300" alt="KS Averaged Spectrum"/> |
 
 #### Burgers' Equation — 1D Viscous Shock Propagation
 
-| Burgers Evolution Grid | Burgers Hovmöller Diagram | Burgers Averaged Spectrum | Burgers Energy Distribution | Burgers IC Manifold | Burgers Sample | Burgers Spectrum |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| <img src="results/dataset_visualizations/Burgers/burgers_evolution_grid.png" width="500" alt="Burgers Evolution Grid"/> | <img src="results/dataset_visualizations/Burgers/burgers_hovmoller.png" width="500" alt="Burgers Hovmöller Diagram"/> | <img src="results/dataset_visualizations/Burgers/burgers_avg_spectrum.png" width="500" alt="Burgers Averaged Spectrum"/> | <img src="results/dataset_visualizations/Burgers/burgers_energy_dist.png" width="500" alt="Burgers Energy Distribution"/> | <img src="results/dataset_visualizations/Burgers/burgers_ic_manifold.png" width="500" alt="Burgers IC Manifold"/> | <img src="results/dataset_visualizations/Burgers/burgers_sample.png" width="500" alt="Burgers Sample"/> | <img src="results/dataset_visualizations/Burgers/burgers_spectrum.png" width="500" alt="Burgers Spectrum"/> |
+| Evolution Grid | Hovmöller Diagram | Averaged Spectrum |
+|:---:|:---:|:---:|
+| <img src="results/dataset_visualizations/Burgers/burgers_evolution_grid.png" width="300" alt="Burgers Evolution Grid"/> | <img src="results/dataset_visualizations/Burgers/burgers_hovmoller.png" width="300" alt="Burgers Hovmöller Diagram"/> | <img src="results/dataset_visualizations/Burgers/burgers_avg_spectrum.png" width="300" alt="Burgers Averaged Spectrum"/> |
 
 #### Darcy Flow — Elliptic Steady-State PDE
 
-| Darcy Sample | Darcy Spectrum | Darcy Energy Distribution | Darcy IC Manifold |
-|:---:|:---:|:---:|:---:|
-| <img src="results/dataset_visualizations/DarcyFlow/darcy_sample.png" width="500" alt="Darcy Sample"/> | <img src="results/dataset_visualizations/DarcyFlow/darcy_spectrum.png" width="500" alt="Darcy Spectrum"/> | <img src="results/dataset_visualizations/DarcyFlow/darcy_energy_dist.png" width="500" alt="Darcy Energy Distribution"/> | <img src="results/dataset_visualizations/DarcyFlow/darcy_ic_manifold.png" width="500" alt="Darcy IC Manifold"/> |
+| Primary Sample Field | Energy Distribution | Attractor Spectrum |
+|:---:|:---:|:---:|
+| <img src="results/dataset_visualizations/DarcyFlow/darcy_sample.png" width="300" alt="Darcy Sample"/> | <img src="results/dataset_visualizations/DarcyFlow/darcy_energy_dist.png" width="300" alt="Darcy Energy Distribution"/> | <img src="results/dataset_visualizations/DarcyFlow/darcy_spectrum.png" width="300" alt="Darcy Spectrum"/> |
+
+</details>
 
 ---
 
