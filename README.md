@@ -113,7 +113,7 @@ The full ablation suite isolates the specific mathematical operations within the
 | **Unscaled (Abl 5)** | Force scalars perfectly to 1 | $A = (K-K^\top) - R^\top R$ |
 
 <p align="center">
-  <img src="components_ablation.png" width="90%">
+  <img src="results/dataset_visualizations/components_ablation.png" width="90%">
 </p>
 
 ---
