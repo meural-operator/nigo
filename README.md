@@ -57,11 +57,9 @@ This framework is benchmarked on challenging physics systems demonstrating disti
 
 ## Evaluation Results: 1D Burgers Equation (ν = 0.1)
 
-To evaluate the long-term autoregressive stability of our proposed architecture, we benchmarked TurboNIGO against standard neural operators (PINN, FNO1d, and UNet1d) on the 1D Burgers equation ($\nu = 0.1$). For a fair comparison, baseline model weights were loaded directly from the official **PDEBench** evaluation suite, and all models were subjected to an extended 1000-step autoregressive rollout from a shared, newly generated initial condition.
+We benchmarked TurboNIGO against official PDEBench baseline models (PINN, FNO1d, UNet1d) on the 1D Burgers equation ($\nu = 0.1$) over an extended 1,000-step autoregressive rollout. 
 
-As shown in the results, standard baseline models struggle significantly in the long-term temporal regime. FNO1d suffers from catastrophic, non-physical energy accumulation (blowup) due to cascading spectral errors ($E_{1000} = 0.6617$). UNet1d amplifies high-frequency checkerboard artifacts, forming a noisy, degraded plateau ($E_{1000} = 0.2282$). The PINN baseline effectively freezes entirely, failing to extrapolate target dynamics over the extended evaluation horizon ($E_{1000} = 0.8566$).
-
-In contrast, **TurboNIGO maintains strict autoregressive stability** throughout the entire 1000-step horizon, successfully capturing the viscous dissipation inherent to the Burgers equation without diverging. By epoch 146 (our best checkpoint), the architecture fully projects the sequence into a structured, stable latent attractor, achieving a final residual energy of **$E_{1000} = 0.0021$**—an improvement of two orders of magnitude over the best baseline. Furthermore, TurboNIGO accomplishes this while yielding a ~4$\times$ faster inference speed ($0.55$s compared to $2.34$s for FNO), establishing it as an exceptionally robust option for long-horizon physical simulations.
+While baseline models suffer from non-physical energy blowup (FNO), compounding high-frequency artifacts (UNet), or frozen dynamics (PINN) over long horizons, **TurboNIGO maintains strict physical stability**. By natively structuring the viscous dissipation into a stable latent attractor, TurboNIGO achieves a final residual error ($E_{1000}$) **two orders of magnitude lower** than the baselines, while executing nearly **4$\times$ faster** at inference.
 
 | Category | Model | $E_{1000} \downarrow$ | Time (s) | Stability |
 |:---|:---|:---:|:---:|:---|
