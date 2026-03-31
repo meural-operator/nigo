@@ -81,14 +81,24 @@ While baseline models suffer from non-physical energy blowup (FNO), compounding 
 
 ## Ablation Studies
 
-### Sequence Length Ablation (Pure MSE Training)
-To quantify sensitivity to rollout training configurations, we ablated the sequence length during phase-1 curriculum training (pure MSE) across $T_{train} \in \{10, 20, 40, 60, 80, 100\}$. The resulting autoregressive divergence extrapolated across a 1,000-step horizon is plotted below:
+### Sequence Length Ablation (Curriculum Training)
 
-<p align="center">
-  <img src="figures/horizon_ablation_mse.png" width="70%">
-</p>
+To quantify sensitivity to rollout training configurations, we ablated the sequence length during phase-1 (pure MSE) and phase-2 (Sobolev objective) curriculum training across $T_{train} \in \{10, 20, 40, 60, 80, 100\}$. We then tested the final autoregressive rollout capacity of these models out to 1,000 steps on the true 2D fluid dynamics dataset (`bc`).
 
-*Increasing the training chunk horizon stabilizes long-term extrapolation significantly by averting high-frequency truncation error accumulation.*
+Without sufficient curriculum horizons (e.g., $T=10$), the continuous model diverges rapidly over long scales. When finetuned with temporally expanding bounds ($T \ge 20$), the models rapidly acquire robust structural Lyapunov stability and systematically avert high-frequency truncation error accumulation over very long test horizons.
+
+| Autoregressive Training Horizon | Diverged (t < 1000) | 1000-Step MSE | Final RMS Energy |
+|:---:|:---:|:---:|:---:|
+| $T=10$ | **Yes** | 2.09 $\times 10^{14}$ | 1.02 $\times 10^{8}$ |
+| $T=20$ | **No** (Stable) | 0.509 | 4.66 |
+| $T=40$ | **No** (Stable) | 0.592 | 4.56 |
+| $T=60$ | **No** (Stable) | 0.425 | 4.87 |
+| $T=80$ | **No** (Stable) | 0.554 | 4.59 |
+| $T=100$ | **No** (Stable) | 0.519 | 4.68 |
+
+| Long-Term Autoregressive Energy Divergence | Snapshot Predictions ($t=1000$) |
+|:---:|:---:|
+| <img src="full_comparison_results/curriculum/curriculum_diagnostics.png" width="450"> | <img src="full_comparison_results/curriculum/curriculum_snapshots.png" width="450"> |
 
 ### Component Isolation (Lyapunov Architecture)
 The full ablation suite isolates the specific mathematical operations within the hyper-turbulent continuous generator matrix $A = \alpha(K-K^\top) - \beta R^\top R$.

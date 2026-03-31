@@ -1,0 +1,32 @@
+{
+    "T=10": {
+        "MSE": 209696057196544.0,
+        "Final_Energy": 102810616.0,
+        "Diverged": true
+    },
+    "T=20": {
+        "MSE": 0.5098193883895874,
+        "Final_Energy": 4.665411949157715,
+        "Diverged": false
+    },
+    "T=40": {
+        "MSE": 0.5925955176353455,
+        "Final_Energy": 4.564899444580078,
+        "Diverged": false
+    },
+    "T=60": {
+        "MSE": 0.42500317096710205,
+        "Final_Energy": 4.8722662925720215,
+        "Diverged": false
+    },
+    "T=80": {
+        "MSE": 0.5547760128974915,
+        "Final_Energy": 4.5978264808654785,
+        "Diverged": false
+    },
+    "T=100": {
+        "MSE": 0.5190562605857849,
+        "Final_Energy": 4.6879706382751465,
+        "Diverged": false
+    }
+}
