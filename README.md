@@ -31,47 +31,53 @@ This framework is benchmarked on challenging physics systems demonstrating disti
 
 #### Bluff-Body Cylinder Flow (bc) — 2D Navier-Stokes
 
-<div style="overflow-x: auto; white-space: nowrap;">
-  <img src="results/dataset_visualizations/bc/bc_evolution_grid.png" height="260" alt="BC Evolution Grid">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/bc/bc_avg_spectrum.png" height="260" alt="BC Averaged Spectrum">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/bc/bc_energy_dist.png" height="260" alt="BC Energy Distribution">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/bc/bc_ic_manifold.png" height="260" alt="BC IC Manifold">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/bc/bc_vorticity.png" height="260" alt="BC Vorticity">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/bc/bc_sample.png" height="260" alt="BC Sample">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/bc/bc_spectrum.png" height="260" alt="BC Spectrum">
+<div style="width: 100%; overflow-x: auto; white-space: nowrap; padding-bottom: 10px;">
+  <img src="figures/bc/bc_spatiotemporal_evolution.png" height="250" alt="BC Spatiotemporal Evolution"/>
+  <img src="figures/bc/bc_spectral_analysis.png" height="250" alt="BC Spectral Analysis"/>
+  <img src="results/dataset_visualizations/bc/bc_evolution_grid.png" height="250" alt="BC Evolution Grid"/>
+  <img src="results/dataset_visualizations/bc/bc_avg_spectrum.png" height="250" alt="BC Averaged Spectrum"/>
+  <img src="results/dataset_visualizations/bc/bc_energy_dist.png" height="250" alt="BC Energy Distribution"/>
+  <img src="results/dataset_visualizations/bc/bc_ic_manifold.png" height="250" alt="BC IC Manifold"/>
+  <img src="results/dataset_visualizations/bc/bc_vorticity.png" height="250" alt="BC Vorticity"/>
+  <img src="results/dataset_visualizations/bc/bc_sample.png" height="250" alt="BC Sample"/>
+  <img src="results/dataset_visualizations/bc/bc_spectrum.png" height="250" alt="BC Spectrum"/>
 </div>
 
 #### Kuramoto-Sivashinsky (KS) — Spatiotemporal Chaos
 
-<div style="overflow-x: auto; white-space: nowrap;">
-  <img src="results/dataset_visualizations/KS_dataset/ks_evolution_grid.png" height="260" alt="KS Evolution Grid">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/KS_dataset/ks_hovmoller.png" height="260" alt="KS Hovmöller Diagram">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/KS_dataset/ks_avg_spectrum.png" height="260" alt="KS Averaged Spectrum">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/KS_dataset/ks_energy_dist.png" height="260" alt="KS Energy Distribution">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/KS_dataset/ks_ic_manifold.png" height="260" alt="KS IC Manifold">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/KS_dataset/ks_sample.png" height="260" alt="KS Sample">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/KS_dataset/ks_spectrum.png" height="260" alt="KS Spectrum">
+<div style="width: 100%; overflow-x: auto; white-space: nowrap; padding-bottom: 10px;">
+  <img src="figures/ks/ks_amplitude_distribution.png" height="250" alt="KS Amplitude Distribution"/>
+  <img src="figures/ks/ks_spatiotemporal_heatmap.png" height="250" alt="KS Spatiotemporal Heatmap"/>
+  <img src="figures/ks/ks_temporal_autocorrelation.png" height="250" alt="KS Temporal Autocorrelation"/>
+  <img src="figures/ks/ks_multi_trajectory.png" height="250" alt="KS Multi-Trajectory"/>
+  <img src="results/dataset_visualizations/KS_dataset/ks_evolution_grid.png" height="250" alt="KS Evolution Grid"/>
+  <img src="results/dataset_visualizations/KS_dataset/ks_hovmoller.png" height="250" alt="KS Hovmöller Diagram"/>
+  <img src="results/dataset_visualizations/KS_dataset/ks_avg_spectrum.png" height="250" alt="KS Averaged Spectrum"/>
+  <img src="results/dataset_visualizations/KS_dataset/ks_energy_dist.png" height="250" alt="KS Energy Distribution"/>
+  <img src="results/dataset_visualizations/KS_dataset/ks_ic_manifold.png" height="250" alt="KS IC Manifold"/>
+  <img src="results/dataset_visualizations/KS_dataset/ks_sample.png" height="250" alt="KS Sample"/>
+  <img src="results/dataset_visualizations/KS_dataset/ks_spectrum.png" height="250" alt="KS Spectrum"/>
 </div>
 
 #### Burgers' Equation — 1D Viscous Shock Propagation
 
-<div style="overflow-x: auto; white-space: nowrap;">
-  <img src="results/dataset_visualizations/Burgers/burgers_evolution_grid.png" height="260" alt="Burgers Evolution Grid">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/Burgers/burgers_hovmoller.png" height="260" alt="Burgers Hovmöller Diagram">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/Burgers/burgers_avg_spectrum.png" height="260" alt="Burgers Averaged Spectrum">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/Burgers/burgers_energy_dist.png" height="260" alt="Burgers Energy Distribution">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/Burgers/burgers_ic_manifold.png" height="260" alt="Burgers IC Manifold">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/Burgers/burgers_sample.png" height="260" alt="Burgers Sample">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/Burgers/burgers_spectrum.png" height="260" alt="Burgers Spectrum">
+<div style="width: 100%; overflow-x: auto; white-space: nowrap; padding-bottom: 10px;">
+  <img src="results/dataset_visualizations/Burgers/burgers_evolution_grid.png" height="250" alt="Burgers Evolution Grid"/>
+  <img src="results/dataset_visualizations/Burgers/burgers_hovmoller.png" height="250" alt="Burgers Hovmöller Diagram"/>
+  <img src="results/dataset_visualizations/Burgers/burgers_avg_spectrum.png" height="250" alt="Burgers Averaged Spectrum"/>
+  <img src="results/dataset_visualizations/Burgers/burgers_energy_dist.png" height="250" alt="Burgers Energy Distribution"/>
+  <img src="results/dataset_visualizations/Burgers/burgers_ic_manifold.png" height="250" alt="Burgers IC Manifold"/>
+  <img src="results/dataset_visualizations/Burgers/burgers_sample.png" height="250" alt="Burgers Sample"/>
+  <img src="results/dataset_visualizations/Burgers/burgers_spectrum.png" height="250" alt="Burgers Spectrum"/>
 </div>
 
 #### Darcy Flow — Elliptic Steady-State PDE
 
-<div style="overflow-x: auto; white-space: nowrap;">
-  <img src="results/dataset_visualizations/DarcyFlow/darcy_sample.png" height="260" alt="Darcy Sample">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/DarcyFlow/darcy_spectrum.png" height="260" alt="Darcy Spectrum">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/DarcyFlow/darcy_energy_dist.png" height="260" alt="Darcy Energy Distribution">&nbsp;&nbsp;
-  <img src="results/dataset_visualizations/DarcyFlow/darcy_ic_manifold.png" height="260" alt="Darcy IC Manifold">
+<div style="width: 100%; overflow-x: auto; white-space: nowrap; padding-bottom: 10px;">
+  <img src="results/dataset_visualizations/DarcyFlow/darcy_sample.png" height="250" alt="Darcy Sample"/>
+  <img src="results/dataset_visualizations/DarcyFlow/darcy_spectrum.png" height="250" alt="Darcy Spectrum"/>
+  <img src="results/dataset_visualizations/DarcyFlow/darcy_energy_dist.png" height="250" alt="Darcy Energy Distribution"/>
+  <img src="results/dataset_visualizations/DarcyFlow/darcy_ic_manifold.png" height="250" alt="Darcy IC Manifold"/>
 </div>
 
 ---
