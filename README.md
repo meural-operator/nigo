@@ -28,12 +28,22 @@ This framework is benchmarked on challenging physics systems demonstrating disti
 | **Shallow Waters** | 2D Non-linear wave mechanics | 128×128 / 100 steps | Multi-Varied / Waves | [PDEBench (Shallow Waters)](https://darus.uni-stuttgart.de/dataset.xhtml?persistentId=doi:10.18419/darus-2986) |
 
 ### Sample Visualizations
-To evaluate structural fidelity, we generated population-level characterizations natively analyzing exact dataset physics.
 
-<p align="center">
-  <img src="results/dataset_visualizations/bc/bc_evolution_grid.png" width="48%" alt="Navier Stokes Evol">
-  <img src="results/dataset_visualizations/KS_dataset/ks_evolution_grid.png" width="48%" alt="KS Evol">
-</p>
+#### Bluff-Body Cylinder Flow (bc) — 2D Navier-Stokes
+
+<div style="overflow-x: auto; white-space: nowrap;">
+  <img src="figures/bc/bc_spatiotemporal_evolution.png" height="280" alt="BC Spatiotemporal Evolution">&nbsp;&nbsp;
+  <img src="figures/bc/bc_spectral_analysis.png" height="280" alt="BC Spectral Analysis">
+</div>
+
+#### Kuramoto-Sivashinsky (KS) — Spatiotemporal Chaos
+
+<div style="overflow-x: auto; white-space: nowrap;">
+  <img src="figures/ks/ks_spatiotemporal_heatmap.png" height="280" alt="KS Spatiotemporal Heatmap">&nbsp;&nbsp;
+  <img src="figures/ks/ks_amplitude_distribution.png" height="280" alt="KS Amplitude Distribution">&nbsp;&nbsp;
+  <img src="figures/ks/ks_temporal_autocorrelation.png" height="280" alt="KS Temporal Autocorrelation">&nbsp;&nbsp;
+  <img src="figures/ks/ks_multi_trajectory.png" height="280" alt="KS Multi-Trajectory">
+</div>
 
 ---
 
