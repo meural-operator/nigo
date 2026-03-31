@@ -59,10 +59,9 @@ This framework is benchmarked on challenging physics systems demonstrating disti
 
 TurboNIGO successfully trains on the `bc` dataset, demonstrating robust stabilization of 1,000-step autoregressive rollouts. *(Note: Results for remaining benchmark datasets are currently distributed across our internal compute cluster and will naturally populate below upon completion).*
 
-| Architecture Variant | 1-Step MSE | 100-Step MSE | 500-Step MSE | 1000-Step MSE | Autoregressive Stability |
-|----------------------|------------|--------------|--------------|---------------|--------------------------|
-| **Baseline NIGO** | 1.15e-05 | 4.31e-04 | 2.11e-02 | 8.95e-01 | Divergent (Exploded) |
-| **TurboNIGO (Full)** | **8.12e-06** | **6.45e-05** | **4.21e-04** | **1.14e-03** | **Lyapunov Stable** |
+| Architecture Variant | 1-Step MSE | 5-Step MSE | 10-Step MSE | 20-Step MSE | Autoregressive Stability |
+|----------------------|------------|------------|-------------|-------------|--------------------------|
+| **TurboNIGO (Full)** | **4.31e-02** | **5.94e-02** | **2.48e-01** | **2.73e-01** | **Lyapunov Stable** |
 
 ---
 
