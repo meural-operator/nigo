@@ -22,10 +22,10 @@ This framework is benchmarked on challenging physics systems demonstrating disti
 
 | Dataset | Description | Spatial / Temporal | Physical Attractor | Source Link |
 |---------|-------------|--------------------|--------------------|-------------|
-| **bc (Boundary Condition)** | Boundary Condition from CFDBench (2D Navier-Stokes) | 64×64 / 1000 steps | Limit Cycle / Transient | [CFDBench (bc.zip)](https://huggingface.co/datasets/chen-yingfa/CFDBench/blob/main/cylinder/bc.zip) |
+| **bc (Boundary Condition)** | Boundary Condition from CFDBench (2D Navier-Stokes) | 64×64 / 1000 steps | Limit Cycle / Transient | CFDBench (bc.zip) |
 | **KS_dataset** | Kuramoto-Sivashinsky Spatiotemporal Chaos | 512 pts / 768 steps | Strange Attractor | Generated locally |
-| **Burgers** | 1D Viscous Shock Propagation | 1024 pts / 100 steps | Fixed Point (Decay) | [PDEBench (Burgers)](https://darus.uni-stuttgart.de/dataset.xhtml?persistentId=doi:10.18419/darus-2986) |
-| **Shallow Waters** | 2D Non-linear wave mechanics | 128×128 / 100 steps | Multi-Varied / Waves | [PDEBench (Shallow Waters)](https://darus.uni-stuttgart.de/dataset.xhtml?persistentId=doi:10.18419/darus-2986) |
+| **Burgers** | 1D Viscous Shock Propagation | 1024 pts / 100 steps | Fixed Point (Decay) | PDEBench (Burgers) |
+| **Shallow Waters** | 2D Non-linear wave mechanics | 128×128 / 100 steps | Multi-Varied / Waves | PDEBench (Shallow Waters) |
 
 ### Sample Visualizations
 
@@ -201,32 +201,7 @@ pip install -r requirements.txt
 python -c "import torch; assert torch.cuda.is_available(), 'No GPU detected'; print(f'GPU: {torch.cuda.get_device_name(0)}, CUDA: {torch.version.cuda}')"
 ```
 
----
 
-## Datasets
-
-This framework is evaluated on two benchmark systems of increasing complexity:
-
-| Dataset | Type | Spatial | Temporal | Samples | Size |
-|---------|------|---------|----------|---------|------|
-| **Bluff-body Cylinder Flow** | 2D Navier-Stokes | 64×64, 2 channels ($u$, $v$) | 1000 steps | 50 cases | ~500 MB |
-| **Kuramoto-Sivashinsky** | 1D chaotic PDE | 512 points | 768 steps | 40,000 trajectories | ~88 GB |
-
-Place datasets in `./datasets/` following the structure:
-```
-datasets/
-├── bc/                          # Cylinder flow
-│   ├── case000/
-│   │   ├── u.npy                # (T, H, W) velocity x-component
-│   │   ├── v.npy                # (T, H, W) velocity y-component
-│   │   └── case.json            # {Re, radius, inlet_velocity, bc_type}
-│   └── ...
-└── KS_dataset/
-    ├── KS_ML_DATASET.h5         # train: (40000, 768, 512), test: (10000, 768, 512)
-    └── KS_GROUNDTRUTH.h5        # 9 long reference trajectories
-```
-
----
 
 ## Training
 
