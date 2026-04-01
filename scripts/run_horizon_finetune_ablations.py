@@ -10,7 +10,8 @@ if os.name == 'nt':
     if os.path.exists(conda_bin):
         os.add_dll_directory(conda_bin)
     else:
-        os.add_dll_directory(r"PATH")
+        # Fallback to hardcoded path if active sys doesn't match miniconda root structure
+        os.add_dll_directory(r"C:\Users\DIAT\miniconda3\envs\turbo_nigo\Library\bin")
 
 # Add root directory to python path for imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
