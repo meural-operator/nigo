@@ -52,3 +52,10 @@ desktop.ini
 
 # --- Conda ---
 *.conda
+
+# --- ICML Specific / Temp ---
+test_*.py
+_*.py
+*.diff
+*.gif
+run_metrics.py

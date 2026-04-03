@@ -31,7 +31,8 @@ class GlobalTurboNIGO_1D(nn.Module):
     """
     def __init__(self, latent_dim: int = 64, num_bases: int = 8, cond_dim: int = 4,
                  width: int = 32, spatial_size: int = 1024, in_channels: int = 1,
-                 num_layers: int = 3, use_residual: bool = False, norm_type: str = None):
+                 num_layers: int = 3, use_residual: bool = False, norm_type: str = None,
+                 use_adaptive_refiner: bool = False, use_spectral_norm: bool = False):
         super().__init__()
         self.encoder = SpectralEncoder1D(
             in_channels=in_channels, latent_dim=latent_dim, width=width,
@@ -44,14 +45,19 @@ class GlobalTurboNIGO_1D(nn.Module):
         self.generator = HyperTurbulentGenerator(
             latent_dim=latent_dim, num_bases=num_bases
         )
-        self.refiner = TemporalRefiner(latent_dim=latent_dim)
+        self.refiner = TemporalRefiner(
+            latent_dim=latent_dim,
+            use_adaptive_refiner=use_adaptive_refiner,
+            use_spectral_norm=use_spectral_norm
+        )
 
         # Decoder initial_len = spatial_size / 2^num_layers
         enc_len = spatial_size // (2 ** num_layers)
         self.decoder = SpectralDecoder1D(
             latent_dim=latent_dim, out_channels=in_channels, width=width,
             initial_len=enc_len, num_layers=num_layers,
-            use_residual=use_residual, norm_type=norm_type
+            use_residual=use_residual, norm_type=norm_type,
+            use_spectral_norm=use_spectral_norm
         )
 
     def forward(self, u0: torch.Tensor, time_steps: torch.Tensor,

@@ -23,7 +23,8 @@ class GlobalTurboNIGO(nn.Module):
     """
     def __init__(self, latent_dim: int = 64, num_bases: int = 8, cond_dim: int = 4, 
                  width: int = 32, spatial_size: int = 64, in_channels: int = 2,
-                 num_layers: int = 3, use_residual: bool = False, norm_type: str = None):
+                 num_layers: int = 3, use_residual: bool = False, norm_type: str = None,
+                 use_adaptive_refiner: bool = False, use_spectral_norm: bool = False):
         super().__init__()
         self.encoder = SpectralEncoder(
             in_channels=in_channels, latent_dim=latent_dim, width=width, 
@@ -32,14 +33,19 @@ class GlobalTurboNIGO(nn.Module):
         )
         self.cond_net = PhysicsInferenceNet(latent_dim=latent_dim, num_bases=num_bases, cond_dim=cond_dim)
         self.generator = HyperTurbulentGenerator(latent_dim=latent_dim, num_bases=num_bases)
-        self.refiner = TemporalRefiner(latent_dim=latent_dim)
+        self.refiner = TemporalRefiner(
+            latent_dim=latent_dim, 
+            use_adaptive_refiner=use_adaptive_refiner, 
+            use_spectral_norm=use_spectral_norm
+        )
         
         # Compute what size the encoder produces via num_layers stride-2 convs
         enc_spatial = spatial_size // (2 ** num_layers)
         self.decoder = SpectralDecoder(
             latent_dim=latent_dim, out_channels=in_channels, width=width, 
             initial_size=enc_spatial, num_layers=num_layers,
-            use_residual=use_residual, norm_type=norm_type
+            use_residual=use_residual, norm_type=norm_type,
+            use_spectral_norm=use_spectral_norm
         )
 
     def forward(self, u0: torch.Tensor, time_steps: torch.Tensor, cond: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:

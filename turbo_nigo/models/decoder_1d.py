@@ -4,17 +4,21 @@ import torch.nn as nn
 
 class ResidualUpBlock1D(nn.Module):
     """Residual upsampling block with 1D transposed convolutions."""
-    def __init__(self, in_c, out_c, norm_type=None):
+    def __init__(self, in_c, out_c, norm_type=None, use_spectral_norm=False):
         super().__init__()
-        self.up = nn.ConvTranspose1d(in_c, out_c, kernel_size=3, stride=2, padding=1, output_padding=1)
+        
+        def sn(layer):
+            return torch.nn.utils.spectral_norm(layer) if use_spectral_norm else layer
+            
+        self.up = sn(nn.ConvTranspose1d(in_c, out_c, kernel_size=3, stride=2, padding=1, output_padding=1))
         self.norm1 = nn.GroupNorm(min(16, max(1, out_c // 4)), out_c) if norm_type == 'group' else nn.Identity()
         self.act1 = nn.GELU()
 
-        self.conv2 = nn.Conv1d(out_c, out_c, kernel_size=3, padding=1)
+        self.conv2 = sn(nn.Conv1d(out_c, out_c, kernel_size=3, padding=1))
         self.norm2 = nn.GroupNorm(min(16, max(1, out_c // 4)), out_c) if norm_type == 'group' else nn.Identity()
         self.act2 = nn.GELU()
 
-        skip_layers = [nn.ConvTranspose1d(in_c, out_c, kernel_size=3, stride=2, padding=1, output_padding=1)]
+        skip_layers = [sn(nn.ConvTranspose1d(in_c, out_c, kernel_size=3, stride=2, padding=1, output_padding=1))]
         if norm_type == 'group':
             skip_layers.append(nn.GroupNorm(min(16, max(1, out_c // 4)), out_c))
         self.skip = nn.Sequential(*skip_layers)
@@ -45,13 +49,17 @@ class SpectralDecoder1D(nn.Module):
     """
     def __init__(self, latent_dim: int, out_channels: int, width: int = 32,
                  initial_len: int = 128, num_layers: int = 3,
-                 use_residual: bool = False, norm_type: str = None):
+                 use_residual: bool = False, norm_type: str = None,
+                 use_spectral_norm: bool = False):
         super().__init__()
         self.width = width
         self.initial_len = initial_len
 
+        def sn(layer):
+            return torch.nn.utils.spectral_norm(layer) if use_spectral_norm else layer
+
         # Project concatenated [real, imag] into spatial feature map
-        self.fc = nn.Linear(latent_dim * 2, width * 4 * initial_len)
+        self.fc = sn(nn.Linear(latent_dim * 2, width * 4 * initial_len))
 
         self.ups = nn.ModuleList()
         curr_width = width * 4
@@ -62,9 +70,9 @@ class SpectralDecoder1D(nn.Module):
             out_w = max(width, out_w)
 
             if use_residual:
-                self.ups.append(ResidualUpBlock1D(in_w, out_w, norm_type=norm_type))
+                self.ups.append(ResidualUpBlock1D(in_w, out_w, norm_type=norm_type, use_spectral_norm=use_spectral_norm))
             else:
-                up = [nn.ConvTranspose1d(in_w, out_w, 3, stride=2, padding=1, output_padding=1)]
+                up = [sn(nn.ConvTranspose1d(in_w, out_w, 3, stride=2, padding=1, output_padding=1))]
                 if norm_type == 'group':
                     up.append(nn.GroupNorm(min(16, max(1, out_w // 4)), out_w))
                 up.append(nn.GELU())
@@ -72,7 +80,7 @@ class SpectralDecoder1D(nn.Module):
 
             curr_width = out_w
 
-        self.conv_final = nn.Conv1d(curr_width, out_channels, 3, padding=1)
+        self.conv_final = sn(nn.Conv1d(curr_width, out_channels, 3, padding=1))
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
         """
@@ -83,6 +91,7 @@ class SpectralDecoder1D(nn.Module):
         """
         B, S, D = z.shape
         with torch.amp.autocast('cuda', enabled=False):
+            z = z.to(torch.complex64)
             z_flat = z.reshape(B * S, D)
 
             x = torch.cat([z_flat.real, z_flat.imag], dim=1)

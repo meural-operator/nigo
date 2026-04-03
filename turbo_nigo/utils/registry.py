@@ -50,5 +50,10 @@ def _register_optional_datasets():
     except Exception:
         pass
 
+    try:
+        from turbo_nigo.data.ns3d_dataset import NS3DDataset
+        Registry.register_dataset("ns3d", NS3DDataset)
+    except Exception:
+        pass
 
 _register_optional_datasets()

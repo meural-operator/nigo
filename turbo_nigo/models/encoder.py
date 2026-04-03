@@ -86,4 +86,5 @@ class SpectralEncoder(nn.Module):
         
         feat = self.flatten(feat)
         with torch.amp.autocast('cuda', enabled=False):
+            feat = feat.float()
             return torch.complex(self.fc_real(feat), self.fc_imag(feat))

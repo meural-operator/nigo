@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Tuple, Dict, Any
 import torch
+import numpy as np
 from torch.utils.data import Dataset
 
 class BaseOperatorDataset(Dataset, ABC):
@@ -62,3 +63,22 @@ class BaseOperatorDataset(Dataset, ABC):
             "cond_mean": self.cond_mean,
             "cond_std": self.cond_std
         }
+
+class Base3DDataset(BaseOperatorDataset):
+    """
+    Abstract interface guaranteeing $O(1)$ memory queries for giant 3D datasets.
+    Implements flexible slicing paradigms required by the advanced query module.
+    """
+    @abstractmethod
+    def get_slice(self, sample_idx: int, channel: str, time_step: int, plane: str, slice_idx: int) -> np.ndarray:
+        """
+        Retrieves a strictly minimal 2D spatial slice out of the massive multi-dimensional structure.
+        """
+        pass
+
+    @abstractmethod
+    def get_volume(self, sample_idx: int, channel: str, time_step: int) -> np.ndarray:
+        """
+        Retrieves an exact pure 3D physical volume specifically mapped to a singular timestep.
+        """
+        pass

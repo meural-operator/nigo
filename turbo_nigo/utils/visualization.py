@@ -31,8 +31,19 @@ plt.rcParams.update({
     "xtick.labelsize": 10,
     "ytick.labelsize": 10,
     "figure.dpi": 300,
-    "savefig.bbox": "tight"
+    "savefig.bbox": "tight",
+    "pgf.texsystem": "pdflatex",
+    "pgf.rcfonts": False
 })
+
+# Preserve double-blind review anonymity: Automatically locate MiKTeX without hardcoding absolute paths or usernames.
+import sys
+if sys.platform == "win32":
+    local_app_data = os.environ.get("LOCALAPPDATA", "")
+    if local_app_data:
+        miktex_path = os.path.join(local_app_data, "Programs", "MiKTeX", "miktex", "bin", "x64")
+        if os.path.exists(miktex_path) and miktex_path not in os.environ.get("PATH", ""):
+            os.environ["PATH"] = miktex_path + os.pathsep + os.environ.get("PATH", "")
 
 class BaseVisualizer(ABC):
     """
@@ -314,6 +325,318 @@ class Visualizer3D(BaseVisualizer):
             ax.axis('off')
             
         plt.colorbar(im2, ax=axes, fraction=0.015, pad=0.04)
+        
+        if save_path:
+            self._save_dual_format(fig, save_path)
+            
+        return fig
+
+    def plot_3d_cube(self, idx: int, time_step: int = -1, channel: int = 0, 
+                     downsample_factor: int = 2, threshold_percentile: float = 85.0,
+                     save_path: Optional[str] = None) -> Figure:
+        """
+        Generic volumetric rendering of a 3D structural cube at a single time step.
+        Uses point cloud scatter for high-intensity regions to avoid rendering overhead.
+        """
+        _, y, _ = self.dataset[idx]
+        vol = self._unnormalize(y)[time_step, channel] # (D, H, W)
+        
+        # Downsample for faster rendering
+        vol_ds = vol[::downsample_factor, ::downsample_factor, ::downsample_factor]
+        
+        # Compute threshold natively based on global field intensity distribution
+        thresh = np.percentile(np.abs(vol_ds), threshold_percentile)
+        
+        # Identify active regions
+        z, y_coord, x = np.where(np.abs(vol_ds) > thresh)
+        vals = vol_ds[z, y_coord, x]
+        
+        fig = plt.figure(figsize=(8, 8))
+        ax = fig.add_subplot(111, projection='3d')
+        
+        scatter = ax.scatter(x, y_coord, z, c=vals, cmap='RdBu_r', 
+                             s=15, alpha=0.6, depthshade=True)
+        
+        ax.set_title(f"3D Structural Isosurface\n(Intensity > {threshold_percentile}th percentile)")
+        ax.set_xlabel("X-Axis")
+        ax.set_ylabel("Y-Axis")
+        ax.set_zlabel("Z-Axis")
+        
+        plt.colorbar(scatter, ax=ax, fraction=0.046, pad=0.08, label="Physical Value")
+        
+        if save_path:
+            self._save_dual_format(fig, save_path)
+        return fig
+
+    def plot_3d_time_evolution(self, idx: int, time_steps: Optional[List[int]] = None, 
+                               channel: int = 0, downsample_factor: int = 2,
+                               threshold_percentile: float = 85.0,
+                               save_path: Optional[str] = None) -> Figure:
+        """
+        Renders a temporal storyboard of structural volume evolution.
+        """
+        _, y, _ = self.dataset[idx]
+        y_phys = self._unnormalize(y) # (T, C, D, H, W)
+        seq_len = y_phys.shape[0]
+        
+        if time_steps is None:
+            time_steps = [0, seq_len // 3, 2 * seq_len // 3, seq_len - 1]
+            
+        fig = plt.figure(figsize=(5 * len(time_steps), 6))
+        
+        # Use common color limits across all time steps
+        global_vol = y_phys[:, channel, ::downsample_factor, ::downsample_factor, ::downsample_factor]
+        vmin, vmax = np.min(global_vol), np.max(global_vol)
+        thresh = np.percentile(np.abs(global_vol), threshold_percentile)
+        
+        for i, t in enumerate(time_steps):
+            if t >= seq_len:
+                continue
+                
+            vol_ds = global_vol[t]
+            z, y_coord, x = np.where(np.abs(vol_ds) > thresh)
+            vals = vol_ds[z, y_coord, x]
+            
+            ax = fig.add_subplot(1, len(time_steps), i + 1, projection='3d')
+            scatter = ax.scatter(x, y_coord, z, c=vals, cmap='RdBu_r', 
+                                 s=15, alpha=0.5, depthshade=True, vmin=vmin, vmax=vmax)
+            
+            ax.set_title(f"Evolution $t={t}$")
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax.set_zticks([])
+            # Fix axes limits to constrain bounding box
+            ax.set_xlim(0, global_vol.shape[2])
+            ax.set_ylim(0, global_vol.shape[1])
+            ax.set_zlim(0, global_vol.shape[0])
+            
+        fig.subplots_adjust(right=0.9)
+        cbar_ax = fig.add_axes([0.92, 0.25, 0.02, 0.5])
+        fig.colorbar(scatter, cax=cbar_ax, label="Physical Value")
+        
+        fig.suptitle(f"3D Structural Topology Time Evolution (C={channel})", fontsize=16, y=0.95)
+        
+        if save_path:
+            self._save_dual_format(fig, save_path)
+        return fig
+
+    def plot_slice_evolution(self, idx: int, axis: str = 'z', slice_idx: Optional[int] = None, 
+                             time_steps: Optional[List[int]] = None, channel: int = 0, 
+                             save_path: Optional[str] = None) -> Figure:
+        """
+        Extracts a generic orthogonal 2D sheet from a 3D volume sequence and 
+        tracks its planar evolution through discrete time horizons.
+        """
+        _, y, _ = self.dataset[idx]
+        y_phys = self._unnormalize(y)[:, channel] # (T, D, H, W)
+        seq_len, depth, height, width = y_phys.shape
+        
+        # Default slice index strictly to midway layout
+        if slice_idx is None:
+            if axis == 'z': slice_idx = depth // 2
+            elif axis == 'y': slice_idx = height // 2
+            elif axis == 'x': slice_idx = width // 2
+            else: raise ValueError(f"Unknown orthogonal axis tracking: {axis}")
+            
+        if time_steps is None:
+            time_steps = [0, seq_len // 4, seq_len // 2, 3 * seq_len // 4, seq_len - 1]
+            
+        fig, axes = plt.subplots(1, len(time_steps), figsize=(4 * len(time_steps), 4), squeeze=False)
+        
+        # Enforce global bounds spanning temporal evolution for stable color mapping
+        vmin, vmax = float(y_phys.min()), float(y_phys.max())
+        
+        for j, t in enumerate(time_steps):
+            if t >= seq_len:
+                continue
+                
+            if axis == 'z':
+                sheet = y_phys[t, slice_idx, :, :]
+                title = f"$t={t}$ (XY plane, z={slice_idx})"
+            elif axis == 'y':
+                sheet = y_phys[t, :, slice_idx, :]
+                title = f"$t={t}$ (XZ plane, y={slice_idx})"
+            elif axis == 'x':
+                sheet = y_phys[t, :, :, slice_idx]
+                title = f"$t={t}$ (YZ plane, x={slice_idx})"
+                
+            im = axes[0, j].imshow(sheet, cmap='RdBu_r', origin='lower', vmin=vmin, vmax=vmax)
+            axes[0, j].set_title(title)
+            axes[0, j].axis('off')
+            
+        plt.tight_layout()
+        plt.colorbar(im, ax=axes, fraction=0.015, pad=0.04)
+        
+        if save_path:
+            self._save_dual_format(fig, save_path)
+            
+        return fig
+
+    def create_slice_animation(self, idx: int, axis: str = 'z', slice_idx: Optional[int] = None, 
+                               channel: int = 0, fps: int = 5, save_path: Optional[str] = None) -> None:
+        """
+        Generates a .mp4 or .gif animation of a 2D slice evolving over all time steps.
+        """
+        import matplotlib.animation as animation
+        
+        _, y, _ = self.dataset[idx]
+        y_phys = self._unnormalize(y)[:, channel] # (T, D, H, W)
+        seq_len, depth, height, width = y_phys.shape
+        
+        if slice_idx is None:
+            if axis == 'z': slice_idx = depth // 2
+            elif axis == 'y': slice_idx = height // 2
+            elif axis == 'x': slice_idx = width // 2
+            
+        fig, ax = plt.subplots(figsize=(6, 5))
+        vmin, vmax = float(y_phys.min()), float(y_phys.max())
+        
+        def get_sheet(t):
+            if axis == 'z': return y_phys[t, slice_idx, :, :]
+            elif axis == 'y': return y_phys[t, :, slice_idx, :]
+            elif axis == 'x': return y_phys[t, :, :, slice_idx]
+            
+        im = ax.imshow(get_sheet(0), cmap='RdBu_r', origin='lower', vmin=vmin, vmax=vmax)
+        title = ax.set_title(f"Slice Evolution (t=0)")
+        plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04, label='Physical Value')
+        ax.axis('off')
+        
+        def update(frame):
+            im.set_array(get_sheet(frame))
+            title.set_text(f"Slice Evolution ({axis.upper()} plane={slice_idx}, t={frame})")
+            return [im, title]
+            
+        anim = animation.FuncAnimation(fig, update, frames=seq_len, interval=1000//fps, blit=True)
+        
+        if save_path:
+            # Requires ffmpeg for MP4, Pillow makes GIFs natively.
+            if save_path.endswith('.mp4'):
+                anim.save(save_path, writer='ffmpeg', fps=fps)
+            elif save_path.endswith('.gif'):
+                anim.save(save_path, writer='pillow', fps=fps)
+            else:
+                anim.save(save_path + ".gif", writer='pillow', fps=fps)
+                
+        plt.close(fig)
+
+    def create_3d_cube_animation(self, idx: int, channel: int = 0, downsample_factor: int = 2, 
+                                 threshold_percentile: float = 85.0, fps: int = 5, 
+                                 save_path: Optional[str] = None) -> None:
+        """
+        Generates a .mp4 or .gif animation of the 3D structural cube evolving over time.
+        """
+        import matplotlib.animation as animation
+        
+        _, y, _ = self.dataset[idx]
+        y_phys = self._unnormalize(y) # (T, C, D, H, W)
+        seq_len = y_phys.shape[0]
+        
+        global_vol = y_phys[:, channel, ::downsample_factor, ::downsample_factor, ::downsample_factor]
+        vmin, vmax = float(np.min(global_vol)), float(np.max(global_vol))
+        thresh = np.percentile(np.abs(global_vol), threshold_percentile)
+        
+        fig = plt.figure(figsize=(8, 8))
+        ax = fig.add_subplot(111, projection='3d')
+        
+        def update(frame):
+            ax.clear()
+            vol_ds = global_vol[frame]
+            z, y_coord, x = np.where(np.abs(vol_ds) > thresh)
+            vals = vol_ds[z, y_coord, x]
+            
+            scatter = ax.scatter(x, y_coord, z, c=vals, cmap='RdBu_r', 
+                                 s=15, alpha=0.5, depthshade=True, vmin=vmin, vmax=vmax)
+                                 
+            ax.set_title(f"3D Structural Time Evolution (t={frame})")
+            ax.set_xlim(0, global_vol.shape[2])
+            ax.set_ylim(0, global_vol.shape[1])
+            ax.set_zlim(0, global_vol.shape[0])
+            ax.set_xlabel("X-Axis")
+            ax.set_ylabel("Y-Axis")
+            ax.set_zlabel("Z-Axis")
+            return ax,
+            
+        anim = animation.FuncAnimation(fig, update, frames=seq_len, interval=1000//fps, blit=False)
+        
+        if save_path:
+            if save_path.endswith('.mp4'):
+                anim.save(save_path, writer='ffmpeg', fps=fps)
+            elif save_path.endswith('.gif'):
+                anim.save(save_path, writer='pillow', fps=fps)
+            else:
+                anim.save(save_path + ".gif", writer='pillow', fps=fps)
+                
+        plt.close(fig)
+
+    def render_slice_query(self, sample_idx: int, channel: str, time_step: int, 
+                           plane: str, slice_idx: int, save_path: Optional[str] = None,
+                           verbose_plot: bool = False) -> Figure:
+        """
+        Executes a pure O(1) memory query rendering a specific planar slice.
+        Relies strictly on the `Base3DDataset` query interface natively.
+        """
+        # Dataset must adhere to Base3DDataset protocol
+        if not hasattr(self.dataset, 'get_slice'):
+            raise TypeError("Dataset must inherit from Base3DDataset to support lazy queries.")
+            
+        sheet_norm = self.dataset.get_slice(sample_idx, channel, time_step, plane, slice_idx)
+        g_min = float(self.stats.get('global_min', 0.0))
+        g_max = float(self.stats.get('global_max', 1.0))
+        
+        # Determine actual physical values natively
+        sheet_phys = sheet_norm * (g_max - g_min) + g_min
+        
+        fig, ax = plt.subplots(figsize=(6, 5))
+        im = ax.imshow(sheet_phys, cmap='RdBu_r', origin='lower')
+        
+        if verbose_plot:
+            ax.set_title(f"Dynamic Slice Query (Channel={channel}, t={time_step}, {plane.upper()}={slice_idx})")
+            plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04, label=f'{channel.capitalize()} Magnitude')
+            ax.axis('off')
+        else:
+            ax.axis('off')
+            fig.subplots_adjust(left=0, right=1, bottom=0, top=1, wspace=0, hspace=0)
+        
+        if save_path:
+            self._save_dual_format(fig, save_path)
+        return fig
+
+    def render_volume_query(self, sample_idx: int, channel: str, time_step: int, 
+                            downsample_factor: int = 2, threshold_percentile: float = 85.0,
+                            save_path: Optional[str] = None, verbose_plot: bool = False) -> Figure:
+        """
+        Executes a pure O(1) memory query extracting a 3D physical volume directly mapped to rendering.
+        """
+        if not hasattr(self.dataset, 'get_volume'):
+            raise TypeError("Dataset must inherit from Base3DDataset to support lazy queries.")
+            
+        vol_norm = self.dataset.get_volume(sample_idx, channel, time_step)
+        
+        g_min = float(self.stats.get('global_min', 0.0))
+        g_max = float(self.stats.get('global_max', 1.0))
+        vol_phys = vol_norm * (g_max - g_min) + g_min
+        
+        vol_ds = vol_phys[::downsample_factor, ::downsample_factor, ::downsample_factor]
+        thresh = np.percentile(np.abs(vol_ds), threshold_percentile)
+        
+        z, y_coord, x = np.where(np.abs(vol_ds) > thresh)
+        vals = vol_ds[z, y_coord, x]
+        
+        fig = plt.figure(figsize=(8, 8))
+        ax = fig.add_subplot(111, projection='3d')
+        
+        scatter = ax.scatter(x, y_coord, z, c=vals, cmap='RdBu_r', 
+                             s=15, alpha=0.6, depthshade=True)
+                             
+        if verbose_plot:
+            ax.set_title(f"Dynamic Volume Query (Channel={channel}, t={time_step})")
+            ax.set_xlabel("X-Axis")
+            ax.set_ylabel("Y-Axis")
+            ax.set_zlabel("Z-Axis")
+            plt.colorbar(scatter, ax=ax, fraction=0.046, pad=0.08, label=f"{channel.capitalize()} Magnitude")
+        else:
+            ax.set_axis_off()
+            fig.subplots_adjust(left=0, right=1, bottom=0, top=1, wspace=0, hspace=0)
         
         if save_path:
             self._save_dual_format(fig, save_path)
