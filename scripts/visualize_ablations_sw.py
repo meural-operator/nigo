@@ -118,7 +118,7 @@ def fig_rollout_mse(all_data, output_dir):
                     markevery=3, markersize=5, label=PRETTY_NAMES.get(name))
                     
     ax.set_xlabel(r"Simulation Rollout Step $t$")
-    ax.set_ylabel(r"Mean Squared Error (MSE)")
+    ax.set_ylabel(r"Absolute Prediction Error (MSE)")
     ax.set_title("Autoregressive Trajectory Drift")
     ax.legend(loc="upper left", framealpha=0.9)
     ax.grid(True, alpha=0.2, which='both')
@@ -177,7 +177,7 @@ def generate_qualitative_visuals(base_config, models_list, output_dir):
     cond_s = cond[0:1].to(device)
     seq_len = u_seq_gt_s.shape[1]
     
-    time_steps = torch.arange(1, seq_len + 1).float().to(device)
+    time_steps = torch.arange(1, seq_len + 1).float().to(device) * base_config.get("dt", 0.1)
     
     # Collate predictions dynamically to prevent caching massive datasets
     horizons = [4, 9, 19] # indices for t=5, t=10, t=20
@@ -193,9 +193,11 @@ def generate_qualitative_visuals(base_config, models_list, output_dir):
             u_pred, _, _, _, _, _ = model(u0_s, time_steps, cond_s)
         grid_data[PRETTY_NAMES.get(name)] = [u_pred[0, h, 0].cpu().numpy() for h in horizons]
         
-    # Find universal min/max across all plotted matrices to identically lock colormaps
-    v_min = min([np.min(arr) for row in grid_data.values() for arr in row])
-    v_max = max([np.max(arr) for row in grid_data.values() for arr in row])
+    # Find min/max strictly from the Ground Truth to identically lock colormaps.
+    # This prevents an exploding model (like Sobolev hitting L_inf=139) from flattening the color range of stable models!
+    gt_arrays = grid_data["Ground Truth"]
+    v_min = float(min([np.nanmin(arr) for arr in gt_arrays]))
+    v_max = float(max([np.nanmax(arr) for arr in gt_arrays]))
     
     # 4 rows, 3 cols
     rows = list(grid_data.keys())

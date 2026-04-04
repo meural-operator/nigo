@@ -57,7 +57,7 @@ def evaluate_single_model(name, model, val_loader, config, device):
         # ------------------------------------------------------------------
         # PHASE 1: Supervised 20-Step Rollout (Ground Truth Comparison)
         # ------------------------------------------------------------------
-        time_steps = torch.arange(1, seq_len + 1).float().to(device)
+        time_steps = torch.arange(1, seq_len + 1).float().to(device) * config.get("dt", 0.1)
         u_pred_20, _, _, _, _, _ = model(u0, time_steps, cond)
         
         # 1. Rollout MSE 
@@ -93,7 +93,7 @@ def evaluate_single_model(name, model, val_loader, config, device):
         initial_volume = u0.sum()
         initial_energy = torch.var(u0) 
         
-        time_steps_block = torch.arange(1, seq_len + 1).float().to(device)
+        time_steps_block = torch.arange(1, seq_len + 1).float().to(device) * config.get("dt", 0.1)
         num_blocks = 1000 // seq_len
         
         energy_trace = [1.0] # E0/E0

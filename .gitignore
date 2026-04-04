@@ -29,6 +29,8 @@ figures/
 # --- Analysis & Exports ---
 Shallow_Water_Analysis_Report.pdf
 export_pdf.py
+sw_full_comparison_results/
+scripts/full_comparison_sw.py
 
 # --- Environment ---
 .env
