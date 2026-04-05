@@ -22,7 +22,6 @@ datasets/
 results/
 results_ks/
 results_sw/
-figures/
 *.pth
 *.pt
 

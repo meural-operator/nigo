@@ -37,25 +37,25 @@ This framework is benchmarked on challenging physics systems demonstrating disti
 
 | Raw Sample Field | Energy Distribution | Spectral Analysis |
 |:---:|:---:|:---:|
-| <img src="results/dataset_visualizations/bc/bc_sample.png" width="300" alt="BC Sample"/> | <img src="results/dataset_visualizations/bc/bc_energy_dist.png" width="300" alt="BC Energy Distribution"/> | <img src="results/dataset_visualizations/bc/bc_spectrum.png" width="300" alt="BC Spectrum"/> |
+| <img src="figures/bc/bc_sample.png" width="300" alt="BC Sample"/> | <img src="figures/bc/bc_energy_dist.png" width="300" alt="BC Energy Distribution"/> | <img src="figures/bc/bc_spectrum.png" width="300" alt="BC Spectrum"/> |
 
 #### Kuramoto-Sivashinsky (KS) — Spatiotemporal Chaos
 
 | Raw Sample Field | Energy Distribution | Spectral Analysis |
 |:---:|:---:|:---:|
-| <img src="results/dataset_visualizations/KS_dataset/ks_sample.png" width="300" alt="KS Sample"/> | <img src="results/dataset_visualizations/KS_dataset/ks_energy_dist.png" width="300" alt="KS Energy Distribution"/> | <img src="results/dataset_visualizations/KS_dataset/ks_spectrum.png" width="300" alt="KS Spectrum"/> |
+| <img src="figures/KS_dataset/ks_sample.png" width="300" alt="KS Sample"/> | <img src="figures/KS_dataset/ks_energy_dist.png" width="300" alt="KS Energy Distribution"/> | <img src="figures/KS_dataset/ks_spectrum.png" width="300" alt="KS Spectrum"/> |
 
 #### Burgers' Equation — 1D Viscous Shock Propagation
 
 | Raw Sample Field | Energy Distribution | Spectral Analysis |
 |:---:|:---:|:---:|
-| <img src="results/dataset_visualizations/Burgers/burgers_sample.png" width="300" alt="Burgers Sample"/> | <img src="results/dataset_visualizations/Burgers/burgers_energy_dist.png" width="300" alt="Burgers Energy Distribution"/> | <img src="results/dataset_visualizations/Burgers/burgers_spectrum.png" width="300" alt="Burgers Spectrum"/> |
+| <img src="figures/Burgers/burgers_sample.png" width="300" alt="Burgers Sample"/> | <img src="figures/Burgers/burgers_energy_dist.png" width="300" alt="Burgers Energy Distribution"/> | <img src="figures/Burgers/burgers_spectrum.png" width="300" alt="Burgers Spectrum"/> |
 
 #### Darcy Flow — Elliptic Steady-State PDE
 
 | Raw Sample Field | Energy Distribution | Spectral Analysis |
 |:---:|:---:|:---:|
-| <img src="results/dataset_visualizations/DarcyFlow/darcy_sample.png" width="300" alt="Darcy Sample"/> | <img src="results/dataset_visualizations/DarcyFlow/darcy_energy_dist.png" width="300" alt="Darcy Energy Distribution"/> | <img src="results/dataset_visualizations/DarcyFlow/darcy_spectrum.png" width="300" alt="Darcy Spectrum"/> |
+| <img src="figures/DarcyFlow/darcy_sample.png" width="300" alt="Darcy Sample"/> | <img src="figures/DarcyFlow/darcy_energy_dist.png" width="300" alt="Darcy Energy Distribution"/> | <img src="figures/DarcyFlow/darcy_spectrum.png" width="300" alt="Darcy Spectrum"/> |
 
 </details>
 
@@ -98,7 +98,7 @@ Without sufficient curriculum horizons (e.g., $T=10$), the continuous model dive
 
 | Long-Term Autoregressive Energy Divergence | Snapshot Predictions ($t=1000$) |
 |:---:|:---:|
-| <img src="full_comparison_results/curriculum/curriculum_diagnostics.png" width="450"> | <img src="full_comparison_results/curriculum/curriculum_snapshots.png" width="450"> |
+| <img src="figures/curriculum/curriculum_diagnostics.png" width="450"> | <img src="figures/curriculum/curriculum_snapshots.png" width="450"> |
 
 ### Component Isolation (Lyapunov Architecture)
 The full ablation suite isolates the specific mathematical operations within the hyper-turbulent continuous generator matrix $A = \alpha(K-K^\top) - \beta R^\top R$.
@@ -113,7 +113,7 @@ The full ablation suite isolates the specific mathematical operations within the
 | **Unscaled (Abl 5)** | Force scalars perfectly to 1 | $A = (K-K^\top) - R^\top R$ |
 
 <p align="center">
-  <img src="results/dataset_visualizations/components_ablation.png" width="90%">
+  <img src="figures/components_ablation.png" width="90%">
 </p>
 
 ---
