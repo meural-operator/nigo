@@ -61,3 +61,25 @@ _*.py
 *.diff
 *.gif
 run_metrics.py
+additional_material/
+
+# --- Comparison & Analysis Results ---
+full_comparison_results/
+
+# --- Interpretability (local analysis, not part of core framework) ---
+interpretability/
+
+# --- Test suite (meta-analysis, not part of core framework) ---
+tests/
+
+# --- Analysis/meta scripts ---
+scripts/analyze_*.py
+scripts/generate_*.py
+scripts/evaluate_ablations_*.py
+scripts/run_ablations_*.py
+scripts/visualize_*_dataset.py
+scripts/full_comparison*.py
+scripts/train_stable_nigo.py
+
+# --- Deprecated files ---
+*_deprecated*
