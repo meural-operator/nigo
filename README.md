@@ -1,7 +1,7 @@
-# TurboNIGO: Structure-Preserving Neural Operators via Lyapunov-Stable Latent Dynamics
+# NIGO: Lyapunov-Stable Continuous-Time Neural Operators for Long-Horizon PDE Dynamics
 
-> **Anonymous Submission — ICML 2026**
-> This repository accompanies the paper *"TurboNIGO: Structure-Preserving Neural Operators via Lyapunov-Stable Latent Dynamics"* (under double-blind review). NIGO stands for **Neural Infinitesimal Generator Operator**.
+> **Accepted — ICML 2026 Workshop on AI for Physics (AI4Physics), Seoul, South Korea**
+> This repository accompanies the accepted paper *"NIGO: Lyapunov-Stable Continuous-Time Neural Operators for Long-Horizon PDE Dynamics"* by Ashish Musale, T. Vinduja, Upasna Singh, et al. NIGO stands for **Neural Infinitesimal Generator Operator**. The implementation is referred to as **TurboNIGO** in parts of the codebase.
 
 ---
 
@@ -361,12 +361,18 @@ The framework includes several optimizations for high-throughput training on mod
 
 ## Citation
 
-```
-Under double-blind review. Citation will be provided upon acceptance.
+If you find NIGO useful in your research, please cite the accepted paper:
+
+```bibtex
+@inproceedings{musale2026nigo,
+  title={NIGO: Lyapunov-Stable Continuous-Time Neural Operators for Long-Horizon PDE Dynamics},
+  author={Musale, Ashish and VINDUJA, T and Singh, Upasna and others},
+  booktitle={ICML 2026 Workshop on AI for Physics}
+}
 ```
 
 ---
 
-## License
+## Usage
 
-This code is provided for **anonymous peer review only**. Redistribution is not permitted during the review period.
+This repository contains the public research implementation accompanying the paper accepted at the **ICML 2026 Workshop on AI for Physics (AI4Physics)**. If you use this code or build on NIGO, please cite the paper above.
